@@ -1,13 +1,24 @@
 from typing import List, Any
 from abc import abstractmethod
 import argparse
+import os
 from os.path import dirname, abspath
 
 from torch import nn
 import torch
 from torch.nn import functional as F
+from torchvision.transforms import (
+    CenterCrop,
+    Compose,
+    Lambda,
+    Normalize,
+    RandomHorizontalFlip,
+    RandomResizedCrop,
+    Resize,
+    ToTensor,
+)
 
-from transformers import set_seed
+from transformers import set_seed, AutoImageProcessor
 
 from datasets import load_dataset, DatasetDict
 
@@ -16,7 +27,7 @@ from accelerate import Accelerator
 
 # get root directory
 root = abspath(__file__)
-while root.split('/')[-1] != 'speech-processing':
+while root.split('/')[-1] != 'sports-language-in-politics':
     root = dirname(root)
 
 
@@ -232,9 +243,14 @@ def run():
 
     parser.add_argument(
         "--data_dir",
-        default="mozilla-foundation/common_voice_13_0",
+        default="food101",
         type=str,
         help="Dataset",
+    )
+    parser.add_argument(
+        "--image_processor",
+        default="google/vit-base-patch16-224-in21k",
+        type=str,
     )
     parser.add_argument(
         "--output_dir",
@@ -374,79 +390,62 @@ def run():
     # dataset
     dataset = DatasetDict()
     dataset["train"] = load_dataset(args.data_dir, split="train")
-    dataset["eval"] = load_dataset(args.data_dir, split="validation")
+    dataset["validation"] = load_dataset(args.data_dir, split="validation")
 
-    with accelerator.main_process_first():
-        # remove unused columns
-        common_voice = common_voice.remove_columns(
-            [
-                "accent", "age", "client_id", "down_votes", "gender", "locale", "path", "segment", "up_votes"
-            ]
-        )
-
-        # select small dataset for testing
-        if args.max_train_samples is not None:
-            common_voice["train"] = common_voice["train"].select(range(args.max_train_samples))
-
-        if args.max_test_samples is not None:
-            common_voice["test"] = common_voice["test"].select(range(args.max_test_samples))
-
-        # resample to 16kHz
-        common_voice = common_voice.cast_column("audio", Audio(sampling_rate=args.sampling_rate))
-
-
-    # if SpecAugment is used for whisper models, return attention_mask to guide the mask along time axis
-    #forward_attention_mask = (
-        #getattr(model.config, "model_type", None) == "whisper"
-        #and getattr(model.config, "apply_spec_augment", False)
-        #and getattr(model.config, "mask_time_prob", 0) > 0
-    #)
-    # return attention_mask anyway
-    forward_attention_mask = True
-
-    # other hyperparameters
-    max_input_length = args.max_duration_in_seconds * feature_extractor.sampling_rate
-    min_input_length = args.min_duration_in_seconds * feature_extractor.sampling_rate
-    model_input_name = feature_extractor.model_input_names[0]
+    image_processor = AutoImageProcessor.from_pretrained(args.image_processor)
         
-    def prepare_dataset(batch):
-        # process audio
-        sample = batch["audio"]
-        inputs = feature_extractor(
-            sample["array"],
-            sampling_rate=sample["sampling_rate"],
-            return_attention_mask=forward_attention_mask
-        )
-        # process audio length
-        batch[model_input_name] = inputs.get(model_input_name)[0]
-        batch["input_length"] = len(sample["array"])
-        if forward_attention_mask: # True, or check if needed above
-            batch["attention_mask"] = inputs.get("attention_mask")[0]
-
-        # process targets
-        input_str = batch["sentence"]  # do lower
-        batch["labels"] = tokenizer(input_str).input_ids
-        return batch
-        
-        
-    with accelerator.main_process_first():
-        # vectorize dataset
-        common_voice = common_voice.map(
-            prepare_dataset,
-            remove_columns=common_voice.column_names["train"],
-            num_proc=args.num_workers)
-
-
-    # filter data that is shorter than min_input_length or longer than
-    # max_input_length
-    def is_audio_in_length_range(length):
-        return length > min_input_length and length < max_input_length
-
-    common_voice = common_voice.filter(
-        is_audio_in_length_range,
-        num_proc=args.num_workers,
-        input_columns=["input_length"],
+    # Define torchvision transforms to be applied to each image.
+    if "shortest_edge" in image_processor.size:
+        size = image_processor.size["shortest_edge"]
+    else:
+        size = (image_processor.size["height"], image_processor.size["width"])
+    normalize = (
+        Normalize(mean=image_processor.image_mean,
+                  std=image_processor.image_std)
+        if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std")
+        else Lambda(lambda x: x)
     )
+    train_transforms = Compose(
+        [
+            RandomResizedCrop(size),
+            RandomHorizontalFlip(),
+            ToTensor(),
+            normalize,
+        ]
+    )
+    val_transforms = Compose(
+        [
+            Resize(size),
+            CenterCrop(size),
+            ToTensor(),
+            normalize,
+        ]
+    )
+
+    def preprocess_train(example_batch):
+        """Apply _train_transforms across a batch."""
+        example_batch["pixel_values"] = [train_transforms(
+            image.convert("RGB")) for image in example_batch["image"]]
+        return example_batch
+
+    def preprocess_val(example_batch):
+        """Apply _val_transforms across a batch."""
+        example_batch["pixel_values"] = [val_transforms(
+            image.convert("RGB")) for image in example_batch["image"]]
+        return example_batch
+
+    with accelerator.main_process_first():
+        if args.max_train_samples is not None:
+            dataset["train"] = dataset["train"].shuffle(
+                seed=args.seed).select(range(args.max_train_samples))
+        # Set the training transforms
+        train_dataset = dataset["train"].with_transform(preprocess_train)
+        if args.max_eval_samples is not None:
+            dataset["validation"] = dataset["validation"].shuffle(
+                seed=args.seed).select(range(args.max_eval_samples))
+        # Set the validation transforms
+        eval_dataset = dataset["validation"].with_transform(preprocess_val)
+
 
     # data collator
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
