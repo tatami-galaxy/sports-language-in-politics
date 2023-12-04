@@ -17,6 +17,8 @@ from torchvision.transforms import (
     Resize,
     ToTensor,
 )
+from torch.utils.data import DataLoader
+import torchvision.utils as vutils
 
 from transformers import set_seed, AutoImageProcessor
 
@@ -60,8 +62,8 @@ class BaseVAE(nn.Module):
 class VanillaVAE(BaseVAE):
 
     def __init__(self,
-                 in_channels: int,
-                 latent_dim: int,
+                 in_channels: int = 3,
+                 latent_dim: int = 768,
                  hidden_dims: List = None,
                  **kwargs) -> None:
         super(VanillaVAE, self).__init__()
@@ -72,7 +74,7 @@ class VanillaVAE(BaseVAE):
         if hidden_dims is None:
             hidden_dims = [32, 64, 128, 256, 512]
 
-        # Build Encoder
+        # build encoder
         for h_dim in hidden_dims:
             modules.append(
                 nn.Sequential(
@@ -84,13 +86,13 @@ class VanillaVAE(BaseVAE):
             in_channels = h_dim
 
         self.encoder = nn.Sequential(*modules)
-        self.fc_mu = nn.Linear(hidden_dims[-1]*4, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1]*4, latent_dim)
+        self.fc_mu = nn.Linear(hidden_dims[-1]*7*7, latent_dim)
+        self.fc_var = nn.Linear(hidden_dims[-1]*7*7, latent_dim)
 
-        # Build Decoder
+        # build decoder
         modules = []
 
-        self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1] * 4)
+        self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1] * 7 * 7)
 
         hidden_dims.reverse()
 
@@ -173,6 +175,7 @@ class VanillaVAE(BaseVAE):
         z = self.reparameterize(mu, log_var)
         return [self.decode(z), input, mu, log_var]
 
+
     def loss_function(self,
                       *args,
                       **kwargs) -> dict:
@@ -228,9 +231,73 @@ class VanillaVAE(BaseVAE):
         return self.forward(x)[0]
     
 
+    def training_step(self, batch, batch_idx, optimizer_idx= 0):
+        real_img, labels = batch
+        self.curr_device = real_img.device
+
+        results = self.forward(real_img, labels=labels)
+        train_loss = self.model.loss_function(*results,
+                                              # al_img.shape[0]/ self.num_train_imgs,
+                                              M_N=self.params['kld_weight'],
+                                              optimizer_idx=optimizer_idx,
+                                              batch_idx=batch_idx)
+
+        self.log_dict({key: val.item()
+                      for key, val in train_loss.items()}, sync_dist=True)
+
+        return train_loss['loss']
+
+
+    def validation_step(self, batch, batch_idx, optimizer_idx=0):
+        real_img, labels = batch
+        self.curr_device = real_img.device
+
+        results = self.forward(real_img, labels=labels)
+        val_loss = self.model.loss_function(*results,
+                                            # real_img.shape[0]/ self.num_val_imgs,
+                                            M_N=1.0,
+                                            optimizer_idx=optimizer_idx,
+                                            batch_idx=batch_idx)
+
+        self.log_dict({f"val_{key}": val.item()
+                      for key, val in val_loss.items()}, sync_dist=True)
+
+
+    def on_validation_end(self) -> None:
+        self.sample_images()
+
+
+    def sample_images(self):
+        # Get sample reconstruction image
+        test_input, test_label = next(
+            iter(self.trainer.datamodule.test_dataloader()))
+        test_input = test_input.to(self.curr_device)
+        test_label = test_label.to(self.curr_device)
+
+#         test_input, test_label = batch
+        recons = self.model.generate(test_input, labels=test_label)
+        vutils.save_image(recons.data,
+                          os.path.join(self.logger.log_dir,
+                                       "Reconstructions",
+                                       f"recons_{self.logger.name}_Epoch_{self.current_epoch}.png"),
+                          normalize=True,
+                          nrow=12)
+
+        try:
+            samples = self.model.sample(144,
+                                        self.curr_device,
+                                        labels=test_label)
+            vutils.save_image(samples.cpu().data,
+                              os.path.join(self.logger.log_dir,
+                                           "Samples",
+                                           f"{self.logger.name}_Epoch_{self.current_epoch}.png"),
+                              normalize=True,
+                              nrow=12)
+        except Warning:
+            pass
+
 
 def run():
-
 
     parser = argparse.ArgumentParser()
 
@@ -240,7 +307,6 @@ def run():
         default=42,
         type=int,
     )
-
     parser.add_argument(
         "--data_dir",
         default="food101",
@@ -275,7 +341,7 @@ def run():
         default=None
     )
     parser.add_argument(
-        '--max_test_samples',
+        '--max_eval_samples',
         type=int,
         default=None
     )
@@ -347,7 +413,6 @@ def run():
         default='no',
         type=str,
     )
-
 
     # parse args
     args = parser.parse_args()
@@ -438,44 +503,39 @@ def run():
         if args.max_train_samples is not None:
             dataset["train"] = dataset["train"].shuffle(
                 seed=args.seed).select(range(args.max_train_samples))
-        # Set the training transforms
+        # set the training transforms
         train_dataset = dataset["train"].with_transform(preprocess_train)
         if args.max_eval_samples is not None:
             dataset["validation"] = dataset["validation"].shuffle(
                 seed=args.seed).select(range(args.max_eval_samples))
-        # Set the validation transforms
+        # set the validation transforms
         eval_dataset = dataset["validation"].with_transform(preprocess_val)
 
-
-    # data collator
-    data_collator = DataCollatorSpeechSeq2SeqWithPadding(
-        processor=processor,
-        decoder_start_token_id=model.config.decoder_start_token_id,
-        forward_attention_mask=forward_attention_mask,
+    # dataLoaders creation:
+    # pixel_values -> B x C x H x W
+    def collate_fn(examples):
+        pixel_values = torch.stack([example["pixel_values"] for example in examples])
+        labels = torch.tensor([example["label"] for example in examples])
+        return {"pixel_values": pixel_values, "labels": labels}
+    
+    train_dataloader = DataLoader(
+        train_dataset, shuffle=True, collate_fn=collate_fn, batch_size=args.train_batch_size
     )
+    eval_dataloader = DataLoader(
+        eval_dataset, collate_fn=collate_fn, batch_size=args.eval_batch_size)
 
-    # cer
-    cer = evaluate.load("cer")
-    wer = evaluate.load("wer")
+    # model
+    vae = VanillaVAE()
 
+    # prepare with accelerator #
 
-    cofi_trainer = CoFiTrainer(
-        args=args,
-        model=model,
-        tokenizer=tokenizer,
-        processor=processor,
-        l0_module=l0_module,
-        teacher_model=teacher_model,
-        accelerator=accelerator,
-        data_collator=data_collator,
-        train_dataset=common_voice['train'],
-        eval_dataset= common_voice['test'],
-        metrics={'cer': cer, 'wer': wer},
-    )
+    for batch in train_dataloader:
+        images = batch['pixel_values']
+        labels = batch['labels']
+        results = vae(images)  # labels=labels)
+        print(results)
+        quit()
 
-    accelerator.print('training')
-    # train function
-    cofi_trainer.train(args)
 
     # make sure model is saved
 
