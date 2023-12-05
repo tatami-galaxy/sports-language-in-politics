@@ -69,6 +69,7 @@ class VanillaVAE(BaseVAE):
         super(VanillaVAE, self).__init__()
 
         self.latent_dim = latent_dim
+        self.params = {'kld_weight': 0.00025}
 
         modules = []
         if hidden_dims is None:
@@ -231,20 +232,12 @@ class VanillaVAE(BaseVAE):
         return self.forward(x)[0]
     
 
-    def training_step(self, batch, batch_idx, optimizer_idx= 0):
-        real_img, labels = batch
-        self.curr_device = real_img.device
-
-        results = self.forward(real_img, labels=labels)
-        train_loss = self.model.loss_function(*results,
-                                              # al_img.shape[0]/ self.num_train_imgs,
-                                              M_N=self.params['kld_weight'],
-                                              optimizer_idx=optimizer_idx,
-                                              batch_idx=batch_idx)
-
-        self.log_dict({key: val.item()
-                      for key, val in train_loss.items()}, sync_dist=True)
-
+    def training_step(self, batch):
+        images = batch['pixel_values']
+        labels = batch['labels']
+        # [self.decode(z), input, mu, log_var]
+        results = self.forward(images)  # labels=labels)
+        train_loss = self.loss_function(*results, M_N=self.params['kld_weight'])
         return train_loss['loss']
 
 
@@ -530,10 +523,8 @@ def run():
     # prepare with accelerator #
 
     for batch in train_dataloader:
-        images = batch['pixel_values']
-        labels = batch['labels']
-        results = vae(images)  # labels=labels)
-        print(results)
+        loss = vae.training_step(batch)
+        print(loss)
         quit()
 
 
