@@ -272,7 +272,7 @@ if __name__ == "__main__":
         raise ValueError(
             f"pass in data_dir"
         )
-    if args.data not in ['politics, random']:
+    if args.data not in ['politics', 'random']:
         raise ValueError(
             f"data must be `random` or `politics`"
         )
@@ -299,10 +299,12 @@ if __name__ == "__main__":
     # load data
     if args.cloud:
         # download political and random comments
-        gdown.download(id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
-                       output='politics_sample.csv', quiet=False)
-        gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
-                       output='random_sample.csv', quiet=False)
+        if args.data == 'politics':
+            gdown.download(id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
+                        output='politics_sample.csv', quiet=False)
+        elif args.data == 'random':
+            gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
+                        output='random_sample.csv', quiet=False)
         # download sports vocab
         gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
                        output='sports_vocab.json', quiet=False)

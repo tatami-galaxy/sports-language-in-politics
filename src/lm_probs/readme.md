@@ -3,3 +3,6 @@ python get_sports_political_vocab.py --output_dir `output directory path` --clou
 
 # run clm on political or random data
 python clm.py --data `[politics, random]` --cloud 
+
+# run ngram on political or random data
+python clm.py --data `[politics, random]` --n `n-gram value` --cloud 
