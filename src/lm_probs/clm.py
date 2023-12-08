@@ -72,11 +72,10 @@ def get_sports_probs(model, tokenizer, vocab, dataloader):
 
     # for each sample get probabilities of sports tokens autoregressively and sum
     sports2prob = {key: [] for key, _ in sports2ids.items()}
-    eval_bar = tqdm(range(len(dataloader)), position=0,
+    eval_bar = tqdm(range(len(eval_dataloader)), position=0,
                     disable=not accelerator.is_local_main_process)
-    for step, batch in enumerate(dataloader):
+    for step, batch in enumerate(eval_dataloader):
         with torch.no_grad():
-            print(model.generate(batch['input_ids']))
             logits = model(**batch).logits
             probs = torch.nn.functional.softmax(logits, dim=2)
             for id, token in ids2sports.items():
