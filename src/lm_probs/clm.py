@@ -70,7 +70,7 @@ def get_sports_probs(model, tokenizer, vocab, dataloader):
     # invert dict
     ids2sports = {v: k for k, v in sports2ids.items()}
 
-    # for each sample get probabilities of sports tokens autoregressively and sum
+    # for each sample get probabilities of sports tokens and sum
     sports2prob = {key: [] for key, _ in sports2ids.items()}
     eval_bar = tqdm(range(len(eval_dataloader)), position=0,
                     disable=not accelerator.is_local_main_process)
@@ -436,6 +436,7 @@ if __name__ == "__main__":
     # evaluate sports probabilities prior to training
     sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
+    # average sports token probability before training: 0.17917883396148682 [politics]
     accelerator.print('average sports token probability before training: {}'.format(avg_prob))
 
     # train

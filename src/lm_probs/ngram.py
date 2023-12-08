@@ -77,15 +77,17 @@ if __name__ == "__main__":
     # load data
     if args.cloud:
         # download political and random comments
-        gdown.download(id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
-                       output='politics_sample.csv', quiet=False)
-        gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
-                       output='random_sample.csv', quiet=False)
+        if args.data == 'politics':
+            gdown.download(id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
+                        output='politics_sample.csv', quiet=False)
+        elif args.data == 'random':
+            gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
+                        output='random_sample.csv', quiet=False)
         # download sports vocab
         gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
                        output='sports_vocab.json', quiet=False)
         # load political and random comments
-        if args.data == 'politcs':
+        if args.data == 'politics':
             data_df = pl.read_csv('politics_sample.csv').drop_nulls()
         elif args.data == 'random':
             data_df = pl.read_csv('random_sample.csv')  # dont drop nulls
