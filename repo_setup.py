@@ -9,9 +9,6 @@ def main():
 
     parser = argparse.ArgumentParser()
 
-    # parse args
-    args = parser.parse_args()
-
     # directorries
     os.mkdir('data')
     os.mkdir('data/raw')
