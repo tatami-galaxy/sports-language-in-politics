@@ -433,6 +433,7 @@ if __name__ == "__main__":
     )
     total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
 
+    # probabilites for maps?
     # evaluate sports probabilities prior to training
     sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
@@ -452,4 +453,5 @@ if __name__ == "__main__":
     # evaluate sports probabilities after training
     sports_probs_after = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_after.values())/len(sports_probs_after)
+    # average sports token probability after training : 0.15423133969306946 [politics]
     accelerator.print('average sports token probability after training : {}'.format(avg_prob))
