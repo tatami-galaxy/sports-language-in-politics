@@ -454,6 +454,9 @@ if __name__ == "__main__":
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
     # average sports token probability before training: 0.164 [politics]
     # average sports token probability before training: 0.214 [random]
+
+    # average sports token probability before training (now):  [politics]
+    # average sports token probability before training (now): 0.221 [random]
     accelerator.print('average sports token probability before training: {}'.format(avg_prob))
 
     # train
@@ -470,5 +473,8 @@ if __name__ == "__main__":
     sports_probs_after = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_after.values())/len(sports_probs_after)
     # average sports token probability after training : 0.163 [politics]
-    # average sports token probability before training: 0.194 [random]
+    # average sports token probability after training: 0.194 [random]
+
+    # average sports token probability after training (now):  [politics]
+    # average sports token probability after training (now): 0.2033 [random]
     accelerator.print('average sports token probability after training : {}'.format(avg_prob))
