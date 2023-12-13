@@ -306,26 +306,38 @@ if __name__ == "__main__":
                         #output='random_sample.csv', quiet=False)
         elif args.data == 'random':
             gdown.download(id="14aRNS6weyZJKHwiJ94d0j6RWWmkaYCuG",
-                           output='random_sample.csv', quiet=False)
+                           output='random_sample_no_sports.csv', quiet=False)
         # download sports vocab
-        gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
-                       output='sports_vocab.json', quiet=False)
+        #gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
+                       #output='sports_vocab.json', quiet=False)
+        gdown.download(id="1tFFzv_M_GwdM5hRBm1vd8NJi1yIWYe4C",
+                       output='sports_vocab_now.json', quiet=False)
+        
         # load political and random comments
         if args.data == 'politics':
             data_df = pl.read_csv('politics_sample.csv').drop_nulls()
+        #elif args.data == 'random':
+            #data_df = pl.read_csv('random_sample.csv')  # dont drop nulls
         elif args.data == 'random':
-            data_df = pl.read_csv('random_sample.csv')  # dont drop nulls
+            data_df = pl.read_csv('random_sample_no_sports.csv')  # dont drop nulls
         # load sports vocab
-        with open('sports_vocab.json', 'r') as fp:
+        #with open('sports_vocab.json', 'r') as fp:
+            #sports_vocab = json.load(fp)
+        with open('sports_vocab_now.json', 'r') as fp:
             sports_vocab = json.load(fp)
     else:
         # load political and random comments
         if args.data == 'politics':
             data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
+        #elif args.data == 'random':
+            #data_df = pl.read_csv(args.data_dir+'random_sample.csv')  # dont drop nulls
         elif args.data == 'random':
-            data_df = pl.read_csv(args.data_dir+'random_sample_no_sports.csv')  # dont drop nulls
+            data_df = pl.read_csv(
+                args.data_dir+'random_sample_no_sports.csv')  # dont drop nulls
         # load sports vocab
-        with open(args.data_dir+'sports_vocab.json', 'r') as fp:
+        #with open(args.data_dir+'sports_vocab.json', 'r') as fp:
+            #sports_vocab = json.load(fp)
+        with open(args.data_dir+'sports_vocab_now.json', 'r') as fp:
             sports_vocab = json.load(fp)
 
     # get comments
@@ -440,7 +452,8 @@ if __name__ == "__main__":
     # evaluate sports probabilities prior to training
     sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
-    # average sports token probability before training: 0.17917883396148682 [politics]
+    # average sports token probability before training: 0.164 [politics]
+    # average sports token probability before training: 0.214 [random]
     accelerator.print('average sports token probability before training: {}'.format(avg_prob))
 
     # train
@@ -456,5 +469,6 @@ if __name__ == "__main__":
     # evaluate sports probabilities after training
     sports_probs_after = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_after.values())/len(sports_probs_after)
-    # average sports token probability after training : 0.15423133969306946 [politics]
+    # average sports token probability after training : 0.163 [politics]
+    # average sports token probability before training: 0.194 [random]
     accelerator.print('average sports token probability after training : {}'.format(avg_prob))

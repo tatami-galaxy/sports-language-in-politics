@@ -80,17 +80,24 @@ if __name__ == "__main__":
         if args.data == 'politics':
             gdown.download(id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
                         output='politics_sample.csv', quiet=False)
+        #elif args.data == 'random':
+            #gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
+                        #output='random_sample.csv', quiet=False)
         elif args.data == 'random':
-            gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
-                        output='random_sample.csv', quiet=False)
+            gdown.download(id="14aRNS6weyZJKHwiJ94d0j6RWWmkaYCuG",
+                           output='random_sample_no_sports.csv', quiet=False)
         # download sports vocab
         gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
                        output='sports_vocab.json', quiet=False)
+        
         # load political and random comments
         if args.data == 'politics':
             data_df = pl.read_csv('politics_sample.csv').drop_nulls()
+        #elif args.data == 'random':
+            #data_df = pl.read_csv('random_sample.csv')  # dont drop nulls
         elif args.data == 'random':
-            data_df = pl.read_csv('random_sample.csv')  # dont drop nulls
+            data_df = pl.read_csv(
+                'random_sample_no_sports.csv')  # dont drop nulls
         # load sports vocab
         with open('sports_vocab.json', 'r') as fp:
             sports_vocab = json.load(fp)
@@ -99,9 +106,12 @@ if __name__ == "__main__":
         if args.data == 'politics':
             data_df = pl.read_csv(
                 args.data_dir+'politics_sample.csv').drop_nulls()
+        #elif args.data == 'random':
+            #data_df = pl.read_csv(
+                #args.data_dir+'random_sample.csv')  # dont drop nulls
         elif args.data == 'random':
             data_df = pl.read_csv(
-                args.data_dir+'random_sample.csv')  # dont drop nulls
+                args.data_dir+'random_sample_no_sports.csv')  # dont drop nulls
         # load sports vocab
         with open(args.data_dir+'sports_vocab.json', 'r') as fp:
             sports_vocab = json.load(fp)
@@ -135,3 +145,8 @@ if __name__ == "__main__":
         scores += model.score(key)
 
     print('total {}-gram score for {} data: {}'.format(args.n, args.data, scores))
+    # 2-gram politics : 0.0089
+    # 2-gram random : 0.0158
+
+    # 3-gram politics : 0.0088
+    # 3-gram random : 0.0157
