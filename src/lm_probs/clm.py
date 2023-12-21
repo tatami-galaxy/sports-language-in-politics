@@ -455,7 +455,7 @@ if __name__ == "__main__":
     # average sports token probability before training: 0.164 [politics]
     # average sports token probability before training: 0.214 [random]
 
-    # average sports token probability before training (now):  [politics]
+    # average sports token probability before training (now): 0.180 [politics]
     # average sports token probability before training (now): 0.221 [random]
     accelerator.print('average sports token probability before training: {}'.format(avg_prob))
 
@@ -475,6 +475,6 @@ if __name__ == "__main__":
     # average sports token probability after training : 0.163 [politics]
     # average sports token probability after training: 0.194 [random]
 
-    # average sports token probability after training (now):  [politics]
+    # average sports token probability after training (now): 0.188  [politics]
     # average sports token probability after training (now): 0.2033 [random]
     accelerator.print('average sports token probability after training : {}'.format(avg_prob))
