@@ -6,8 +6,10 @@ import polars as pl
 import nltk
 from nltk.corpus import stopwords
 from nltk import word_tokenize, sent_tokenize
+from nltk.util import bigrams
 from nltk.lm.preprocessing import padded_everygram_pipeline
 from nltk.lm import MLE
+from tqdm.auto import tqdm
 
 
 if __name__ == "__main__":
@@ -30,7 +32,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--data",
-        default=None,
+        default=None,  # ['politics', 'random']
+        type=str,
+    )
+    parser.add_argument(
+        "--sports_data",
+        default=None,  # ['vocab', 'comments']
         type=str,
     )
     parser.add_argument(
@@ -52,7 +59,14 @@ if __name__ == "__main__":
     # parse args
     args = parser.parse_args()
 
-    # check if data directory is None
+    if args.sports_data is None:
+        raise ValueError(
+            f"pass in data_dir"
+        )
+    if args.sports_data not in ['vocab', 'comments']:
+        raise ValueError(
+            f"sports_data must be `vocab` or `comments`"
+        )
     if args.data is None:
         raise ValueError(
             f"pass in data_dir"
@@ -86,9 +100,14 @@ if __name__ == "__main__":
         elif args.data == 'random':
             gdown.download(id="14aRNS6weyZJKHwiJ94d0j6RWWmkaYCuG",
                            output='random_sample_no_sports.csv', quiet=False)
-        # download sports vocab
-        gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
-                       output='sports_vocab.json', quiet=False)
+        if args.sports_data == 'vocab':
+            # download sports vocab
+            gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
+                        output='sports_vocab.json', quiet=False)
+        else:
+            # download sports comments
+            gdown.download(id="1Xc6VXdG8cloh8tdxAaboQewkilgvWxub",
+                        output='sports_sample.json', quiet=False)
         
         # load political and random comments
         if args.data == 'politics':
@@ -101,52 +120,97 @@ if __name__ == "__main__":
         # load sports vocab
         with open('sports_vocab.json', 'r') as fp:
             sports_vocab = json.load(fp)
+        # load sports comments
+            sports_df = pl.read_csv('sports_sample.csv').drop_nulls()
     else:
         # load political and random comments
         if args.data == 'politics':
+            print('loading political comments')
             data_df = pl.read_csv(
                 args.data_dir+'politics_sample.csv').drop_nulls()
+            print('done')
         #elif args.data == 'random':
             #data_df = pl.read_csv(
                 #args.data_dir+'random_sample.csv')  # dont drop nulls
         elif args.data == 'random':
+            print('loading random comments')
             data_df = pl.read_csv(
                 args.data_dir+'random_sample_no_sports.csv')  # dont drop nulls
+            print('done')
         # load sports vocab
-        with open(args.data_dir+'sports_vocab.json', 'r') as fp:
-            sports_vocab = json.load(fp)
-
-    # get comments
+        if args.sports_data == 'vocab':
+            with open(args.data_dir+'sports_vocab.json', 'r') as fp:
+                sports_vocab = json.load(fp)
+            print('loaded sports vocab')
+        else:
+            # load sports comments
+            print('loading sports comments')
+            sports_df = pl.read_csv(
+                args.data_dir+'sports_sample.csv').drop_nulls()
+            print('done')
+        
+    # get comments and filter
+    print('filtering')
     comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower()
                 for comment in data_df['body'].to_list()]
-    # filter
+    if args.sports_data == 'comments':
+        sports_comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower()
+                    for comment in sports_df['body'].to_list()]
+    # filter political/random comments
     comments_long = []
     lens = [len(c.split()) for c in comments]
     for i in range(len(comments)):
         if lens[i] >= args.min_comment_length:
             comments_long.append(comments[i])
+    if args.sports_data == 'comments':
+        # filter sports comments
+        sports_comments_long = []
+        lens = [len(c.split()) for c in sports_comments]
+        for i in range(len(sports_comments)):
+            if lens[i] >= args.min_comment_length:
+                sports_comments_long.append(sports_comments[i])
+        sports_comments = sports_comments_long[:args.sample_size]
     # upto sample size
     # shuffle?
     comments = comments_long[:args.sample_size]
+    if args.sports_data == 'comments':  
+        sports_comments = sports_comments_long[:args.sample_size]
 
+    print('training {}-gram lm on {} comments'.format(args.n, args.data))
+    # train n gram lm on comments (not sports comments)
     # tokenize
     tokenized_comments = [list(map(str.lower, word_tokenize(sent))) for sent in comments]
-
     # preprocess the tokenized text for n-gram language modelling
     train_data, padded_sents = padded_everygram_pipeline(args.n, tokenized_comments)
-
     # train n-gram model
     model = MLE(args.n)
     model.fit(train_data, padded_sents)
+    print('done')
 
-    # score sports vocab
-    scores = 0
-    for key, _ in sports_vocab.items():
-        scores += model.score(key)
+    if args.sports_data == 'vocab':
+        print('scoring sports vocab')
+        # score sports vocab
+        scores = 0
+        for key, _ in sports_vocab.items():
+            scores += model.score(key)
 
-    print('total {}-gram score for {} data: {}'.format(args.n, args.data, scores))
+        print('total {}-gram score for {} data: {}'.format(args.n, args.data, scores))
     # 2-gram politics : 0.0089
     # 2-gram random : 0.0158
 
     # 3-gram politics : 0.0088
     # 3-gram random : 0.0157
+    else:
+        print('calculating comment cross entropy without backoff. need to implement backoff')
+        # remove stopwords?
+        bar = tqdm(range(len(sports_comments)), position=0)
+        ce_list = []
+        for comment in sports_comments:
+            bi_list = list(bigrams(comment.split()))
+            plm = 0
+            for item in bi_list:
+                plm += model.score(item[0], [item[1]])
+            ce_list.append(-(plm/len(bi_list)))
+            bar.update(1)
+
+        print(sum(ce_list))
