@@ -310,7 +310,7 @@ if __name__ == "__main__":
         # download sports vocab
         #gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
                        #output='sports_vocab.json', quiet=False)
-        gdown.download(id="1tFFzv_M_GwdM5hRBm1vd8NJi1yIWYe4C",
+        gdown.download(id="1WVy5TTkK3zfJJdFyiPKGrtYsA5S8w2LC",
                        output='sports_vocab_now.json', quiet=False)
         
         # load political and random comments
