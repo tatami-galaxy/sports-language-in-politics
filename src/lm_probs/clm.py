@@ -20,6 +20,10 @@ from transformers import(
     get_scheduler,
 )
 
+manual_vocab ={
+    
+}
+
 
 def get_perplexity(data: list, model):
 
@@ -170,6 +174,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--perplexity",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--manual_vocab",
         action="store_true",
     )
     parser.add_argument(
@@ -340,6 +348,9 @@ if __name__ == "__main__":
         with open(args.data_dir+'sports_vocab_now.json', 'r') as fp:
             sports_vocab = json.load(fp)
 
+    if args.manual_vocab:
+        print('overwriting sports vocab with manual vocab (check top of code)')
+        sports_vocab = manual_vocab
     # get comments
     comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower() for comment in data_df['body'].to_list()]
     # filter
@@ -452,11 +463,8 @@ if __name__ == "__main__":
     # evaluate sports probabilities prior to training
     sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
-    # average sports token probability before training: 0.164 [politics]
-    # average sports token probability before training: 0.214 [random]
+    # average sports token probability before training (wiki): 0.034
 
-    # average sports token probability before training (now): 0.180 [politics]
-    # average sports token probability before training (now): 0.221 [random]
     accelerator.print('average sports token probability before training: {}'.format(avg_prob))
 
     # train
@@ -472,9 +480,10 @@ if __name__ == "__main__":
     # evaluate sports probabilities after training
     sports_probs_after = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_after.values())/len(sports_probs_after)
-    # average sports token probability after training : 0.163 [politics]
-    # average sports token probability after training: 0.194 [random]
+    # average sports token probability after training : 0.163, 0.189, 0.192, 0.156 [politics]
+    # average sports token probability after training: 0.194, 0.178, 0.201, 0.171 [random]
 
-    # average sports token probability after training (now): 0.188  [politics]
-    # average sports token probability after training (now): 0.2033 [random]
+    # calculate cross entropy
+    # with and without stop words
+
     accelerator.print('average sports token probability after training : {}'.format(avg_prob))

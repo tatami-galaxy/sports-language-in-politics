@@ -5,7 +5,7 @@ import argparse
 
 def main():
 
-    req = ['scikit-learn', 'transformers', 'datasets', 'accelerate', 'evaluate' 'nltk', 'polars', 'shap', 'matplotlib', 'gdown']
+    req = ['scikit-learn', 'nltk', 'transformers', 'datasets', 'accelerate', 'evaluate' 'nltk', 'polars', 'shap', 'matplotlib', 'gdown']
 
     parser = argparse.ArgumentParser()
 
