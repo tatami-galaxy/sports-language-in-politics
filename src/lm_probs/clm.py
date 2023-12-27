@@ -11,7 +11,7 @@ import math
 import torch
 from torch.utils.data import DataLoader
 from accelerate import Accelerator
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 from transformers import(
     AutoModelForCausalLM,
     AutoConfig,
@@ -21,7 +21,10 @@ from transformers import(
 )
 
 manual_vocab ={
-    
+    'coach', 'season', 'attack', 'defense', 'defend', 'draft', 'game', 'games', 
+    'pitch', 'pitched', 'players', 'player', 'playing', 'rookie', 'score', 'scored',
+    'roster', 'team', 'teams', 'shoot', 'ballpark', 'fans', 'boomerang', 'knockout',
+    'mismatch', 'punch', 'dummy', 'prize', 'captain', 'quarterback', 
 }
 
 
@@ -262,7 +265,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--train_steps",
-        default=5000,
+        default=3000,
         type=int,
     )
     parser.add_argument(
@@ -384,13 +387,12 @@ if __name__ == "__main__":
     def tokenize_function(examples):
         return tokenizer(examples[args.text_column_name])
         
-    column_names = dataset.column_names
     with accelerator.main_process_first():
         tokenized_dataset = dataset.map(
             tokenize_function,
             batched=True,
             num_proc=args.num_workers,
-            remove_columns=column_names,
+            remove_columns=dataset.column_names,
             desc="Running tokenizer on dataset",
         )
     # main data processing function that will concatenate all texts from the dataset and generate chunks of block_size
@@ -422,12 +424,33 @@ if __name__ == "__main__":
     train_dataset = dataset['train']
     eval_dataset = dataset['test']
 
+    # get wiki data
+    wiki = load_dataset('wikitext', 'wikitext-103-v1', split='train+test').select(range(args.sample_size))
+    with accelerator.main_process_first():
+        tokenized_wiki = wiki.map(
+            tokenize_function,
+            batched=True,
+            num_proc=args.num_workers,
+            remove_columns=wiki.column_names,
+            desc="Running tokenizer on wiki",
+        )
+        wiki = tokenized_wiki.map(
+            group_texts,
+            batched=True,
+            num_proc=args.num_workers,
+            desc=f"Grouping texts in chunks of {args.block_size}",
+        )
+
+
     # dataloaders
     train_dataloader = DataLoader(
         train_dataset, shuffle=True, collate_fn=default_data_collator, batch_size=args.per_device_train_batch_size
     )
     eval_dataloader = DataLoader(
         eval_dataset, collate_fn=default_data_collator, batch_size=args.per_device_eval_batch_size
+    )
+    wiki_dataloader = DataLoader(
+        wiki, collate_fn=default_data_collator, batch_size=args.per_device_eval_batch_size
     )
 
     # optimizer
@@ -454,14 +477,14 @@ if __name__ == "__main__":
     )
 
     # prepare with accelerator
-    model, optimizer, train_dataloader, eval_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, eval_dataloader, lr_scheduler
+    model, optimizer, train_dataloader, eval_dataloader, wiki_dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, train_dataloader, eval_dataloader, wiki_dataloader, lr_scheduler
     )
     total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
 
     # probabilites for maps?
-    # evaluate sports probabilities prior to training
-    sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
+    # evaluate sports probabilities prior to training on wiki
+    sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, wiki_dataloader)
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
     # average sports token probability before training (wiki): 0.034
 
