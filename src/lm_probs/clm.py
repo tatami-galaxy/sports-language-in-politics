@@ -485,7 +485,7 @@ if __name__ == "__main__":
     # evaluate sports probabilities prior to training on wiki
     sports_probs_before = get_sports_probs(model, tokenizer, sports_vocab, wiki_dataloader)
     avg_prob = sum(sports_probs_before.values())/len(sports_probs_before)
-    # average sports token probability before training (wiki): 0.034
+    # average sports token probability before training (wiki): 0.145 (avg)
 
     accelerator.print('average sports token probability before training: {}'.format(avg_prob))
 
@@ -502,10 +502,7 @@ if __name__ == "__main__":
     # evaluate sports probabilities after training
     sports_probs_after = get_sports_probs(model, tokenizer, sports_vocab, eval_dataloader)
     avg_prob = sum(sports_probs_after.values())/len(sports_probs_after)
-    # average sports token probability after training : 0.163, 0.189, 0.192, 0.156 [politics]
-    # average sports token probability after training: 0.194, 0.178, 0.201, 0.171 [random]
-
-    # calculate cross entropy
-    # with and without stop words
+    # average sports token probability after training : 0.0434 [politics] (avg)
+    # average sports token probability after training : 0.15 [random] (avg)
 
     accelerator.print('average sports token probability after training : {}'.format(avg_prob))

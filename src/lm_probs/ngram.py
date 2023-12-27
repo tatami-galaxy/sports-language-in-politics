@@ -26,6 +26,10 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
+        "--manual_vocab",
+        action="store_true",
+    )
+    parser.add_argument(
         "--sample_size",
         default=50000,
         type=int,
@@ -148,6 +152,16 @@ if __name__ == "__main__":
             sports_df = pl.read_csv(
                 args.data_dir+'sports_sample.csv').drop_nulls()
             print('done')
+
+    if args.manual_vocab:
+        print('overwriting sports vocab with manual vocab')
+        manual_vocab = [
+            'coach', 'season', 'attack', 'defense', 'defend', 'draft', 'game', 'games',
+            'pitch', 'pitched', 'players', 'player', 'playing', 'rookie', 'score', 'scored',
+            'roster', 'team', 'teams', 'shoot', 'ballpark', 'fans', 'boomerang', 'knockout',
+            'mismatch', 'punch', 'dummy', 'prize', 'captain', 'quarterback',
+        ]
+        sports_vocab = {v: 0 for v in manual_vocab}
         
     # get comments and filter
     print('filtering')
@@ -195,11 +209,11 @@ if __name__ == "__main__":
             scores += model.score(key)
 
         print('total {}-gram score for {} data: {}'.format(args.n, args.data, scores))
-    # 2-gram politics : 0.0089
-    # 2-gram random : 0.0158
+    # 2-gram politics : 0.0089 (shapley), 0.00094 (manual vocab)
+    # 2-gram random : 0.0158 (shapley), 0.00296 (manual vocab)
 
-    # 3-gram politics : 0.0088
-    # 3-gram random : 0.0157
+    # 3-gram politics : 0.0088 (shapley), 0.000934 (manual vocab)
+    # 3-gram random : 0.0157 (shapley), 0.0029 (manual vocab)
     else:
         print('calculating comment cross entropy without backoff. need to implement backoff')
         # remove stopwords?

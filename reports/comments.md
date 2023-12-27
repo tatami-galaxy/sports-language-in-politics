@@ -1,6 +1,11 @@
-- Detecting sports lang/term in politics vs comparing sports lang in politics and general convo
 
 - Style transfer -> LM + paraphrasing?
+
+- Detecting sports lang/term in politics vs comparing sports lang in politics and general convo
+
+- How to calculate clm, mlm probabilites?
+    - analyze
+    - calculate with generation
 
 - How to detect metaphors
     - exact match

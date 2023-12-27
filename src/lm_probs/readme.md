@@ -2,7 +2,7 @@
 python get_sports_political_vocab.py --output_dir `output directory path` --cloud
 
 # run clm on political or random data
-accelerate launch clm.py --data `[politics, random]` --cloud 
+accelerate launch clm.py --data `[politics, random]` --cloud --manual_vocab
 
 # run ngram on political or random data
-python ngram.py --data `[politics, random]` --n `n-gram value` --sports_data comments --cloud 
+python ngram.py --data `[politics, random]` --n `n-gram value` --sports_data `[vocab, comments]` --manual_vocab --cloud 
