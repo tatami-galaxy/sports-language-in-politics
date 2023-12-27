@@ -20,13 +20,6 @@ from transformers import(
     get_scheduler,
 )
 
-manual_vocab ={
-    'coach', 'season', 'attack', 'defense', 'defend', 'draft', 'game', 'games', 
-    'pitch', 'pitched', 'players', 'player', 'playing', 'rookie', 'score', 'scored',
-    'roster', 'team', 'teams', 'shoot', 'ballpark', 'fans', 'boomerang', 'knockout',
-    'mismatch', 'punch', 'dummy', 'prize', 'captain', 'quarterback', 
-}
-
 
 def get_perplexity(data: list, model):
 
@@ -71,7 +64,7 @@ def get_sports_probs(model, tokenizer, vocab, dataloader):
     for token, id in tokenizer.get_vocab().items():
         stripped_vocab[tokenizer.convert_tokens_to_string([token]).strip()] = id
     # tokens to ids
-    for key, val in vocab.items():
+    for key, _ in vocab.items():
         if key in stripped_vocab:
             sports2ids[key] = stripped_vocab[key] # id
     # invert dict
@@ -352,8 +345,14 @@ if __name__ == "__main__":
             sports_vocab = json.load(fp)
 
     if args.manual_vocab:
-        print('overwriting sports vocab with manual vocab (check top of code)')
-        sports_vocab = manual_vocab
+        print('overwriting sports vocab with manual vocab')
+        manual_vocab = [
+            'coach', 'season', 'attack', 'defense', 'defend', 'draft', 'game', 'games', 
+            'pitch', 'pitched', 'players', 'player', 'playing', 'rookie', 'score', 'scored',
+            'roster', 'team', 'teams', 'shoot', 'ballpark', 'fans', 'boomerang', 'knockout',
+            'mismatch', 'punch', 'dummy', 'prize', 'captain', 'quarterback', 
+        ]
+        sports_vocab = {v:0 for v in manual_vocab}
     # get comments
     comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower() for comment in data_df['body'].to_list()]
     # filter
