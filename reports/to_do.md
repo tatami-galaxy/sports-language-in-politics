@@ -1,4 +1,4 @@
-##### Detecting sports language/terminology in politics
+#### Detecting sports language/terminology in politics
 
 - Metaphors can mean different things
     - how to select metaphors?
@@ -20,12 +20,12 @@
 - Style transfer -> LM + paraphrasing?
 
 
-##### Analyzing sports language in politics
+#### Analyzing sports language in politics
 
 - Month wise metaphor frequency in political comments
 
 
-##### Data
+#### Data
 
 - sports subs comments
 - political subs comments
