@@ -15,7 +15,7 @@
 
 - Analyze data 
     - random subs contain sports-meta, gaming, anime, movie, war etc. subs. also potentially political content
-        - gaming, sports subs -> classifier
+        - gaming, sports subs ->  build classifier
 
 - Style transfer -> LM + paraphrasing?
 
@@ -28,7 +28,10 @@
 ### Data
 
 - sports subs comments
+    - sample
 - political subs comments
+    - sample
 - random subs comments
+    - sample
 - NOW dataset -> online new, sports etc. articles across 10 years
 - political comments across years, months
