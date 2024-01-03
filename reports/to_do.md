@@ -2,9 +2,16 @@
 
 - Metaphors can mean different things
     - how to select metaphors?
+        - frequency/TF-IDF using NOW dataset
 
 - How to detect metaphors
-    - semantic similarity + edit distance
+    - edit distance + semantic similarity
+
+- Analyze data 
+    - random subs contain sports-meta, gaming, anime, movie, war etc. subs. also potentially political content
+        - gaming, sports subs 
+            - remove
+            - build classifier
 
 - How to calculate clm, mlm probabilites?
     - analyze
@@ -12,10 +19,6 @@
     - multiple samples
 
 - How to interpret Shapley values
-
-- Analyze data 
-    - random subs contain sports-meta, gaming, anime, movie, war etc. subs. also potentially political content
-        - gaming, sports subs ->  build classifier
 
 - Style transfer -> LM + paraphrasing?
 

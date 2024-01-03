@@ -309,7 +309,7 @@ if __name__ == "__main__":
             #gdown.download(id="1h3ZUGnbjdORQqonq6eOlLxp9MIg36XcN",
                         #output='random_sample.csv', quiet=False)
         elif args.data == 'random':
-            gdown.download(id="14aRNS6weyZJKHwiJ94d0j6RWWmkaYCuG",
+            gdown.download(id="1ujimjlUgQF28OydOMbRvxnVRHOT5ulry",
                            output='random_sample_no_sports.csv', quiet=False)
         # download sports vocab
         #gdown.download(id="15Yc36d4Bbf_Jr3ICPbR5uxOvB79ggklr",
