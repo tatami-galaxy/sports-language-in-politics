@@ -10,6 +10,7 @@ import random
 import editdistance
 import torch
 
+# filter out sports articles first
 no_list = [
     'bout', 'out', 'close', 'ace', 'up', 'pawn', 'win', 'check', 'check in',
     'bush', 'card', 'pass', 'flat out', 'drawback', 'blank', 'boner',
@@ -278,6 +279,9 @@ if __name__ == "__main__":
     # consider edit distance <= args.edit_thresh (2)
     print('edit distance match')
     exact_meta_matches, sem_dict = ngram_edit_distance_match(meta_list, comments, args)
+
+    ## save ##
+
     # count exact matches
     exact_count = sum(list(exact_meta_matches.values()))
 
