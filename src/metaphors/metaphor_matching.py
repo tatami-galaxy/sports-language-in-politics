@@ -6,27 +6,43 @@ import argparse
 import gdown
 from nltk.util import ngrams
 from sentence_transformers import SentenceTransformer, util
-from random import shuffle
+import random
 import editdistance
+import torch
+
+no_list = [
+    'bout', 'out', 'close', 'ace', 'up', 'pawn', 'win', 'check', 'check in',
+    'bush', 'card', 'pass', 'flat out', 'drawback', 'blank', 'boner',
+    'hotdog', 'iron man', 'set up', 'flat out', 'prize', 'debut',
+    'hit on', 'set to', 'discard', 'dummy', 'hold in', 'fan', 'gentlemen',
+    'bench', 'debut', 'mainstream', 'coup', 'lightweight', 'win', 'ace',
+    'carnival', 'scam', 'keep it up'
+]
+
 
 # <= 2
 def ngram_edit_distance_match(meta_list, comments, args):
-    sim_dict = {}
+    sem_dict = {}
+    exact_meta_matches = {}
     meta_bar = tqdm(range(len(meta_list)), position=0)
     comment_bar = tqdm(range(len(comments)), position=1)
     for meta in meta_list:
         meta_len = len(meta.split())
         comment_bar = tqdm(range(len(comments)))
+        exact_meta_matches[meta] = 0
         for comment in comments:
             text = comment.split()
             grams = [' '.join(l) for l in list(ngrams(text, n=meta_len))]
             for gram in grams:
                 dist = editdistance.eval(gram, meta)
-                if dist <= args.edit_thresh:
-                    if meta not in sim_dict:
-                        sim_dict[meta] = [(gram, dist)]
+                if dist <= args.edit_thresh:  # 2
+                    if dist == 0:
+                        exact_meta_matches[meta] += 1
                     else:
-                        sim_dict[meta].append((gram, dist))
+                        if meta not in sem_dict:
+                            sem_dict[meta] = [(gram, dist)]
+                        else:
+                            sem_dict[meta].append((gram, dist))
 
             comment_bar.update(1)
 
@@ -34,16 +50,68 @@ def ngram_edit_distance_match(meta_list, comments, args):
         comment_bar.reset()
         meta_bar.update(1)
     
-    with open(args.data_dir+'sim_dict1.json', 'w') as f:
-        json.dump(sim_dict, f)
+    #with open(args.data_dir+'sim_dict1.json', 'w') as f:
+        #json.dump(sim_dict, f)
 
-    return sim_dict
+    return exact_meta_matches, sem_dict
+
+
+def semantic_filter(model, meta_list, sem_dict, args):
+
+    embed_dict = {}
+    dup_dict = {}
+    meta_count = 0
+
+    meta_bar = tqdm(range(len(sem_dict)), position=0)
+    for meta, val in sem_dict.items():
+        meta_bar.update(1)
+        meta_count += 1
+        if meta not in meta_list:
+            continue
+        dup_dict[meta] = []
+        meta_embedding = model.encode(meta)
+        bar = tqdm(range(len(val)), position=1)
+        for match in val:
+            bar.update(1)
+            if match[1] > 0 and match[0] not in dup_dict[meta]:
+                match_embedding = model.encode(match[0])
+                score = util.cos_sim(meta_embedding, match_embedding)
+                if score < args.sem_thresh:
+                    continue
+                if meta not in embed_dict:
+                    embed_dict[meta] = [match[0]]
+                else:
+                    embed_dict[meta].append(match[0])
+
+                dup_dict[meta].append(match[0])
+
+        if meta_count > 20:
+            return embed_dict
+    
+
+def semantic_match(sem_dict, embed_dict):
+    
+    m_dict = {}
+    for meta, val in sem_dict.items():
+        if meta not in embed_dict:
+            continue
+        m_dict[meta] = 0
+        for match in val:
+            if match[1] > 0 and match[0] in embed_dict[meta]:
+                m_dict[meta] += 1
+
+    return m_dict
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    parser.add_argument(
+        "--seed",
+        default=42,
+        type=int,
+    )
     parser.add_argument(
         "--cloud",
         action="store_true",
@@ -82,9 +150,19 @@ if __name__ == "__main__":
         default=2,
         type=int,
     )
+    parser.add_argument(
+        "--sem_thresh",
+        default=0.8,
+        type=float,
+    )
 
     # parse args
     args = parser.parse_args()
+
+    # seed
+    import random
+    random.seed(args.seed)
+    from random import shuffle
 
     if args.data is None:
         raise ValueError(
@@ -165,6 +243,7 @@ if __name__ == "__main__":
     print('filtering metaphors')
     meta_list = [meta.replace("'", '') for meta in meta_list]
     meta_list = [re.sub(r"[^a-zA-Z0-9]+", ' ', meta).lower() for meta in meta_list]
+    meta_list = [m for m in meta_list if m not in no_list]
 
     # filter comments
     print('filtering comments')
@@ -176,17 +255,41 @@ if __name__ == "__main__":
         if lens[i] >= args.min_comment_length:
             comments_long.append(comments[i])
     print('done')
+
+    # sample comments
     print('sampling')
-    # sample
     if args.sample:
-        shuffle(comments)
+        shuffle(comments_long)
         comments = comments_long[:args.sample_size]
+
+    # device
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
 
     # semantic search model
     print('loading semantic search model')
-    model = SentenceTransformer(args.model_name)
+    model = SentenceTransformer(args.model_name, device=device)
 
     # match metaphors with political comments
-    sim_dict = ngram_edit_distance_match(meta_list, comments, args)
+    # consider edit distance <= args.edit_thresh (2)
+    print('edit distance match')
+    exact_meta_matches, sem_dict = ngram_edit_distance_match(meta_list, comments, args)
+    # count exact matches
+    exact_count = sum(list(exact_meta_matches.values()))
+
+    # semantic match remaining >= args.sem_thresh (0.8)
+    print('semantic filter')
+    embed_dict = semantic_filter(model, meta_list, sem_dict, args)
+    semantic_meta_matches = semantic_match(sem_dict, embed_dict)
+    # count semantic matches
+    semantic_count = sum(list(semantic_meta_matches.values()))
+
+    print('exact count : {}'.format(exact_count))
+    print('semantic count : {}'.format(semantic_count))
+
 
     
