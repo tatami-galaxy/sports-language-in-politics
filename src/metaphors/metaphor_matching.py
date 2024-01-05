@@ -27,32 +27,48 @@ def ngram_edit_distance_match(meta_list, comments, args):
     exact_meta_matches = {}
     meta_bar = tqdm(range(len(meta_list)), position=0)
     comment_bar = tqdm(range(len(comments)), position=1)
+
     for meta in meta_list:
-        meta_len = len(meta.split())
-        comment_bar = tqdm(range(len(comments)))
+
         exact_meta_matches[meta] = 0
+        sem_dict[meta] = {'comment_lengths' : [], 'exact_matches': [], 'semantic_matches' : []}
+
+        meta_len = len(meta.split())
+        if meta_len <= 2:
+            edit_thresh = args.edit_thresh_1_2_gram
+        elif meta_len == 3:
+            edit_thresh = args.edit_thresh_3_gram
+        else: 
+            edit_thresh = args.edit_thresh_n_gram
+
+        comment_bar = tqdm(range(len(comments)))
         for comment in comments:
+            # splitting for ngram
             text = comment.split()
             grams = [' '.join(l) for l in list(ngrams(text, n=meta_len))]
+            # store comment (char) length to normalize results later
+            sem_dict[meta]['comment_lengths'].append(len(comment))
+            # list to store ngram matches and edit distances for each comment
+            exact_matches = []
+            semantic_matches = []
             for gram in grams:
                 dist = editdistance.eval(gram, meta)
-                if dist <= args.edit_thresh:  # 2
+                if dist <= edit_thresh: 
                     if dist == 0:
-                        exact_meta_matches[meta] += 1
+                        exact_matches.append((gram, dist))
                     else:
-                        if meta not in sem_dict:
-                            sem_dict[meta] = [(gram, dist)]
-                        else:
-                            sem_dict[meta].append((gram, dist))
-
+                       semantic_matches.append((gram, dist))
+            # add comment data list to match dict
+            sem_dict[meta]['exact_matches'].append(exact_matches)
+            sem_dict[meta]['semantic_matches'].append(semantic_matches)
             comment_bar.update(1)
-
+            
         comment_bar.refresh()
         comment_bar.reset()
         meta_bar.update(1)
     
-    #with open(args.data_dir+'sim_dict1.json', 'w') as f:
-        #json.dump(sim_dict, f)
+    with open(args.data_dir+'sem_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+        json.dump(sem_dict, f)
 
     return exact_meta_matches, sem_dict
 
@@ -138,7 +154,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--min_comment_length",
-        default=150,
+        default=100,  # chars
         type=int,
     )
     parser.add_argument(
@@ -147,8 +163,18 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
-        "--edit_thresh",
+        "--edit_thresh_1_2_gram",
         default=2,
+        type=int,
+    )
+    parser.add_argument(
+        "--edit_thresh_3_gram",
+        default=3,
+        type=int,
+    )
+    parser.add_argument(
+        "--edit_thresh_n_gram",
+        default=4,
         type=int,
     )
     parser.add_argument(
@@ -251,10 +277,15 @@ if __name__ == "__main__":
     comments = [comment.replace("'", '') for comment in data_df['body'].to_list()]
     comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower() for comment in comments]
     comments_long = []
-    lens = [len(c.split()) for c in comments]
-    for i in range(len(comments)):
-        if lens[i] >= args.min_comment_length:
-            comments_long.append(comments[i])
+    # filter by char 
+    for comment in comments:
+        if len(comment) >= args.min_comment_length:
+            comments_long.append(comment)
+    # filter by word
+    #lens = [len(c.split()) for c in comments]
+    #for i in range(len(comments)):
+        #if lens[i] >= args.min_comment_length:
+            #comments_long.append(comments[i])
     print('done')
 
     # sample comments
@@ -280,6 +311,7 @@ if __name__ == "__main__":
     print('edit distance match')
     exact_meta_matches, sem_dict = ngram_edit_distance_match(meta_list, comments, args)
 
+    quit()
     ## save ##
 
     # count exact matches

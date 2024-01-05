@@ -17,7 +17,7 @@
         - validate semantic thresh
 
 - Analyze data 
-        - build classifier to remove sports and gaming subs  [1]
+    - build classifier to remove sports and gaming subs  [1]
 
 - How to calculate lm probabilites?
     - analyze
