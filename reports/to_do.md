@@ -18,12 +18,15 @@
 
 - Analyze data 
     - build classifier to remove sports and gaming subs  [1]
+        - find more sports and gaming subs in addition to sports and gaming lists
 
 - How to calculate lm probabilites?
     - analyze
     - calculate with generation
     - multiple samples
     - log probs with backoff
+
+- Autoencoders?
 
 - How to interpret Shapley values
 
