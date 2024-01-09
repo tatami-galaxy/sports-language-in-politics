@@ -6,19 +6,21 @@
 ### Detecting sports language/terminology in politics
 
 - Metaphors can mean different things
-    - how to select metaphors?  [1]
+    - how to select metaphors?
         - frequency/TF-IDF using NOW dataset
             - filter sports articles first -> measure freqeuncy of metaphors from rest
 
+- Edit Metaphor csv [1]
+
 - How to detect metaphors
-    - edit distance + semantic similarity  [2]
-        - vectorize code
+    - edit distance + semantic similarity
+        - vectorize code [2]
         - edit distance threshold based on n-gram
         - validate semantic thresh
 
 - Analyze data 
-    - build classifier to remove sports and gaming subs  [1]
-        - find more sports and gaming subs in addition to sports and gaming lists
+    - build classifier to remove sports and gaming subs 
+    - use classifier to filter remaining data [1]
 
 - How to calculate lm probabilites?
     - analyze
@@ -36,7 +38,7 @@
 ### Analyzing sports language in politics
 
 - Month wise metaphor frequency in political comments
-    - fix datetime  [3]
+    - fix datetime  [2]
 
 
 ### Data
