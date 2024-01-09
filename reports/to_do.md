@@ -8,9 +8,9 @@
 - Metaphors can mean different things
     - how to select metaphors?
         - frequency/TF-IDF using NOW dataset
-            - filter sports articles first -> measure freqeuncy of metaphors from rest
+            - filter sports articles first -> measure freqeuncy of metaphors from rest [1]
 
-- Edit Metaphor csv [1]
+- Edit Metaphor csv [1] [set(list), spelling, 'someone']
 
 - How to detect metaphors
     - edit distance + semantic similarity
@@ -20,6 +20,7 @@
 
 - Analyze data 
     - build classifier to remove sports and gaming subs 
+        - ngram, bert etc.
     - use classifier to filter remaining data [1]
 
 - How to calculate lm probabilites?
