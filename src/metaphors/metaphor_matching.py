@@ -12,12 +12,9 @@ import torch
 
 # filter out sports articles first
 no_list = [
-    'bout', 'out', 'close', 'ace', 'up', 'pawn', 'win', 'check', 'check in',
-    'bush', 'card', 'pass', 'flat out', 'drawback', 'blank', 'boner',
-    'hotdog', 'iron man', 'set up', 'flat out', 'prize', 'debut',
-    'hit on', 'set to', 'discard', 'dummy', 'hold in', 'fan', 'gentlemen',
-    'bench', 'debut', 'mainstream', 'coup', 'lightweight', 'win', 'ace',
-    'carnival', 'scam', 'keep it up'
+    'franchise', 'on board', 'free for all', 'score', 'check', 'game', 'goal', 'pass', 
+    'fan', 'tackle', 'debut', 'prize', 'card', 'draw', 'coup', 'to the point', 'out', 'pro',
+    'sport', 'course', 'up', 'tip', 'upside', 'set to', 'bench', 'headline', 'set up'
 ]
 
 
@@ -255,6 +252,7 @@ if __name__ == "__main__":
             print('done')
         elif args.data == 'random':
             print('loading random comments')  # update random sample
+            ## fix sample ##
             data_df = pl.read_csv(
                 args.data_dir+'random_sample_no_sports.csv')  # dont drop nulls
             print('done')

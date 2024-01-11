@@ -9,11 +9,19 @@
     - how to select metaphors?
         - frequency/TF-IDF using NOW dataset
             - filter sports articles first -> measure freqeuncy of metaphors from rest [1]
+            - how to select topk? [2]
+                - does it matter? -> try different topk [2]
 
-- Edit Metaphor csv [1] [set(list), spelling, 'someone']
+- Edit Metaphor csv
+    - re-verify metaphors
+    - check spellings
+    - remove duplicates
+    - "someone", "something"
+    - try with and without to see difference
 
 - How to detect metaphors
     - edit distance + semantic similarity
+        - normalize by comment length [1]
         - vectorize code [2]
         - edit distance threshold based on n-gram
         - validate semantic thresh
