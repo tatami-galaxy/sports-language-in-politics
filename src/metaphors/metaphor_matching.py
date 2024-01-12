@@ -10,7 +10,6 @@ import random
 import editdistance
 import torch
 
-# filter out sports articles first
 no_list = [
     'franchise', 'on board', 'free for all', 'score', 'check', 'game', 'goal', 'pass', 
     'fan', 'tackle', 'debut', 'prize', 'card', 'draw', 'coup', 'to the point', 'out', 'pro',
@@ -18,7 +17,6 @@ no_list = [
 ]
 
 
-# <= 2
 def ngram_edit_distance_match(meta_list, comments, args):
     sem_dict = {}
     exact_meta_matches = {}
@@ -28,7 +26,7 @@ def ngram_edit_distance_match(meta_list, comments, args):
     for meta in meta_list:
 
         exact_meta_matches[meta] = 0
-        sem_dict[meta] = {'comment_lengths' : [], 'exact_matches': [], 'semantic_matches' : []}
+        sem_dict[meta] = []
 
         meta_len = len(meta.split())
         if meta_len <= 2:
@@ -43,28 +41,26 @@ def ngram_edit_distance_match(meta_list, comments, args):
             # splitting for ngram
             text = comment.split()
             grams = [' '.join(l) for l in list(ngrams(text, n=meta_len))]
-            # store comment (char) length to normalize results later
-            sem_dict[meta]['comment_lengths'].append(len(comment))
+            # store comment (char) length to normalize results later (not needed, similar length)
+            #sem_dict[meta]['comment_lengths'].append(len(comment))
             # list to store ngram matches and edit distances for each comment
-            exact_matches = []
             semantic_matches = []
             for gram in grams:
                 dist = editdistance.eval(gram, meta)
                 if dist <= edit_thresh: 
                     if dist == 0:
-                        exact_matches.append((gram, dist))
+                        exact_meta_matches[meta] += 1
                     else:
-                       semantic_matches.append((gram, dist))
+                       semantic_matches.append(gram)
             # add comment data list to match dict
-            sem_dict[meta]['exact_matches'].append(exact_matches)
-            sem_dict[meta]['semantic_matches'].append(semantic_matches)
+            sem_dict[meta].extend(semantic_matches)
             comment_bar.update(1)
             
         comment_bar.refresh()
         comment_bar.reset()
         meta_bar.update(1)
     
-    with open(args.data_dir+'sem_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+    with open(args.data_dir+'sem_dict_'+args.data+'_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
         json.dump(sem_dict, f)
 
     return exact_meta_matches, sem_dict
@@ -75,46 +71,40 @@ def semantic_filter(model, meta_list, sem_dict, args):
     embed_dict = {}
     dup_dict = {}
     meta_count = 0
+    semantic_meta_matches = {}
 
     meta_bar = tqdm(range(len(sem_dict)), position=0)
-    for meta, val in sem_dict.items():
+    for meta, match_list in sem_dict.items():
         meta_bar.update(1)
         meta_count += 1
-        if meta not in meta_list:
+        semantic_meta_matches[meta] = 0
+
+        if len(match_list) == 0 or meta not in meta_list:
             continue
+
         dup_dict[meta] = []
         meta_embedding = model.encode(meta)
-        bar = tqdm(range(len(val)), position=1)
-        for match in val:
+        bar = tqdm(range(len(match_list)), position=1)
+        for match in match_list:
             bar.update(1)
-            if match[1] > 0 and match[0] not in dup_dict[meta]:
-                match_embedding = model.encode(match[0])
+            if match not in dup_dict[meta]:
+                match_embedding = model.encode(match)
                 score = util.cos_sim(meta_embedding, match_embedding)
                 if score < args.sem_thresh:
                     continue
-                if meta not in embed_dict:
-                    embed_dict[meta] = [match[0]]
-                else:
-                    embed_dict[meta].append(match[0])
+                semantic_meta_matches[meta] += 1
+                #if meta not in embed_dict:
+                    #embed_dict[meta] = [match]
+                #else:
+                    #embed_dict[meta].append(match)
+                dup_dict[meta].append(match)
+            else:
+                semantic_meta_matches[meta] += 1
 
-                dup_dict[meta].append(match[0])
-
-        if meta_count > 20:
-            return embed_dict
+        #if meta_count > 20:
+            
+    return semantic_meta_matches
     
-
-def semantic_match(sem_dict, embed_dict):
-    
-    m_dict = {}
-    for meta, val in sem_dict.items():
-        if meta not in embed_dict:
-            continue
-        m_dict[meta] = 0
-        for match in val:
-            if match[1] > 0 and match[0] in embed_dict[meta]:
-                m_dict[meta] += 1
-
-    return m_dict
 
 
 if __name__ == "__main__":
@@ -140,6 +130,11 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
+        "--max_meta",
+        default=None,
+        type=int,
+    )
+    parser.add_argument(
         "--data",
         default=None,  # ['politics', 'random']
         type=str,
@@ -151,7 +146,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--min_comment_length",
-        default=100,  # chars
+        default=150,  # chars
         type=int,
     )
     parser.add_argument(
@@ -254,11 +249,11 @@ if __name__ == "__main__":
             print('loading random comments')  # update random sample
             ## fix sample ##
             data_df = pl.read_csv(
-                args.data_dir+'random_sample_no_sports.csv')  # dont drop nulls
+                args.data_dir+'random_sample_no_sports_v1.csv')  # dont drop nulls
             print('done')
             
         # load metaphors
-        with open(args.data_dir+'meta_dict.json', 'r') as fp:
+        with open(args.data_dir+'meta_dict_full.json', 'r') as fp:
             data = json.load(fp)
         meta_list = []
         for key, values in data.items():
@@ -270,21 +265,32 @@ if __name__ == "__main__":
     meta_list = [re.sub(r"[^a-zA-Z0-9]+", ' ', meta).lower() for meta in meta_list]
     meta_list = [m for m in meta_list if m not in no_list]
 
+    if args.max_meta is not None:
+        print('truncating metaphor list')
+        meta_list = meta_list[:args.max_meta]
+
     # filter comments
     print('filtering comments')
-    comments = [comment.replace("'", '') for comment in data_df['body'].to_list()]
+    if args.data == 'politics':
+        comments = [comment.replace("'", '') for comment in data_df['body'].to_list()]
+    else:
+        comments = [comment.replace("'", '') for comment in data_df['comments'].to_list()]
     comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower() for comment in comments]
     comments_long = []
     # filter by char 
     for comment in comments:
         if len(comment) >= args.min_comment_length:
             comments_long.append(comment)
+
     # filter by word
     #lens = [len(c.split()) for c in comments]
     #for i in range(len(comments)):
         #if lens[i] >= args.min_comment_length:
             #comments_long.append(comments[i])
     print('done')
+
+    # average comment lengths -> political : 435.14  random : 432.06
+    #print(sum([len(comment) for comment in comments_long])/len(comments_long))
 
     # sample comments
     print('sampling')
@@ -309,7 +315,6 @@ if __name__ == "__main__":
     print('edit distance match')
     exact_meta_matches, sem_dict = ngram_edit_distance_match(meta_list, comments, args)
 
-    quit()
     ## save ##
 
     # count exact matches
@@ -317,8 +322,7 @@ if __name__ == "__main__":
 
     # semantic match remaining >= args.sem_thresh (0.8)
     print('semantic filter')
-    embed_dict = semantic_filter(model, meta_list, sem_dict, args)
-    semantic_meta_matches = semantic_match(sem_dict, embed_dict)
+    semantic_meta_matches = semantic_filter(model, meta_list, sem_dict, args)
     # count semantic matches
     semantic_count = sum(list(semantic_meta_matches.values()))
 
