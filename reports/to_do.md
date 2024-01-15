@@ -8,11 +8,11 @@
 - Metaphors can mean different things
     - how to select metaphors?
         - frequency/TF-IDF using NOW dataset
-            - filter sports articles first -> measure freqeuncy of metaphors from rest [1]
-            - how to select topk? [2]
-                - does it matter? -> try different topk [2]
+            - filter sports articles first -> measure freqeuncy of metaphors from rest
+            - how to select topk? [1]
+                - does it matter? -> try different topk
 
-- Edit Metaphor csv
+- Edit Metaphor csv  [2]
     - re-verify metaphors
     - check spellings
     - remove duplicates
@@ -21,15 +21,15 @@
 
 - How to detect metaphors
     - edit distance + semantic similarity
-        - normalize by comment length [1]
-        - vectorize code [2]
+        - normalize by comment length
+        - vectorize code [3]
         - edit distance threshold based on n-gram
-        - validate semantic thresh
+        - validate semantic thresh [2]
 
 - Analyze data 
     - build classifier to remove sports and gaming subs 
         - ngram, bert etc.
-    - use classifier to filter remaining data [1]
+    - use classifier to filter remaining data
 
 - How to calculate lm probabilites?
     - analyze
@@ -47,7 +47,7 @@
 ### Analyzing sports language in politics
 
 - Month wise metaphor frequency in political comments
-    - fix datetime  [2]
+    - fix datetime  [1]
 
 
 ### Data
