@@ -1,7 +1,10 @@
-### Papers
+### Readings
 - No country for old members
 - Political homophily
 - Quantifying political polarization
+- Immigration framing
+- statistical significance tests
+    - unpaired t test [2]
 
 ### Detecting sports language/terminology in politics
 
@@ -9,22 +12,28 @@
     - how to select metaphors?
         - frequency/TF-IDF using NOW dataset
             - filter sports articles first -> measure freqeuncy of metaphors from rest
-            - how to select topk? [1]
+            - how to select topk?
                 - does it matter? -> try different topk
+                - dont filter for now 
 
-- Edit Metaphor csv  [2]
+- Edit Metaphor csv 
     - re-verify metaphors
     - check spellings
     - remove duplicates
-    - "someone", "something"
-    - try with and without to see difference
 
 - How to detect metaphors
     - edit distance + semantic similarity
-        - normalize by comment length
-        - vectorize code [3]
-        - edit distance threshold based on n-gram
-        - validate semantic thresh [2]
+        - store edit, semantic values, comments / comment ids
+        - "someone", "something", etc.  [1]
+        - vectorize code
+        - validate semantic thresh  [3]
+
+- Sport analogies [1]
+    - immigration paper
+    - augment list?
+    - MASK [1]
+    - embeddings [2]
+    - parse trees [3]
 
 - Analyze data 
     - build classifier to remove sports and gaming subs 
@@ -47,7 +56,7 @@
 ### Analyzing sports language in politics
 
 - Month wise metaphor frequency in political comments
-    - fix datetime  [1]
+    - fix datetime  [3]
 
 
 ### Data
