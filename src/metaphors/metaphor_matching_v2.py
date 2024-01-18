@@ -11,6 +11,7 @@ import random
 import editdistance
 import torch
 
+no_list = ['out', 'up', 'tip']
 
 def ngram_edit_distance_match(meta_list, comments, ids, args):
 
@@ -23,9 +24,6 @@ def ngram_edit_distance_match(meta_list, comments, ids, args):
 
     for meta in meta_list:
 
-        exact_meta_matches[meta] = [0, []]  # [total_matches, [comment_ids]]
-        sem_dict[meta] = []
-
         meta_len = len(meta.split())
         if meta_len <= 2:
             edit_thresh = args.edit_thresh_1_2_gram
@@ -35,7 +33,15 @@ def ngram_edit_distance_match(meta_list, comments, ids, args):
             edit_thresh = args.edit_thresh_n_gram
 
         if 'something' in meta or 'someone' in meta or 'someones' in meta:
-            edit_thresh += 10  # len of something + max edit thresh
+            if meta.split()[0] in ['something', 'someone', 'someones']:
+                meta = ' '.join(meta.split()[1:])
+            elif meta.split()[-1] in ['something', 'someone', 'someones']:
+                meta = ' '.join(meta.split()[:-1])
+            else:
+                edit_thresh += 10  # len of something + max edit thresh
+
+        exact_meta_matches[meta] = [0, []]  # [total_matches, [comment_ids]]
+        sem_dict[meta] = []
 
         comment_bar = tqdm(range(len(comments)))
         for c in range(len(comments)):
@@ -98,7 +104,7 @@ def semantic_filter(model, sem_dict, args):
             bar.update(1)
             if match[0] not in dup_dict[meta]: 
                 match_embedding = model.encode(match[0])
-                score = util.cos_sim(meta_embedding, match_embedding)
+                score = util.cos_sim(meta_embedding, match_embedding).item()
                 semantic_meta_matches[meta][1].append((match[0], score, match[1]))  # meta : [total_matches, [(gram, score, comment_id)]..]
                 if score >= args.sem_thresh:
                     semantic_meta_matches[meta][0] += 1
@@ -244,9 +250,6 @@ if __name__ == "__main__":
         )
         with open('meta_dict_full.json', 'r') as fp:
             data = json.load(fp)
-        meta_list = []
-        for key, values in data.items():
-            meta_list.extend(values)
 
     # local
     else:
@@ -266,9 +269,11 @@ if __name__ == "__main__":
         # load metaphors
         with open(args.data_dir+'meta_dict_full.json', 'r') as fp:
             data = json.load(fp)
-        meta_list = []
-        for key, values in data.items():
-            meta_list.extend(values)
+
+
+    meta_list = []
+    for key, values in data.items():
+        meta_list.extend(values)
         
     # remove duplicates
     meta_list = list(set(meta_list))
@@ -277,9 +282,7 @@ if __name__ == "__main__":
     print('filtering metaphors')
     meta_list = [meta.replace("'", '') for meta in meta_list]
     meta_list = [re.sub(r"[^a-zA-Z0-9]+", ' ', meta).lower() for meta in meta_list]
-
-    # not removing common metaphors for now (no_list is in v0)
-    #meta_list = [m for m in meta_list if m not in no_list]
+    meta_list = [m for m in meta_list if m not in no_list]
 
     if args.max_meta is not None:
         print('truncating metaphor list')

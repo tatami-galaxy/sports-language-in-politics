@@ -25,6 +25,7 @@
     - edit distance + semantic similarity
         - store edit, semantic values, comments / comment ids
         - "someone", "something", etc.  [1]
+            - for the ones at the beginning or end, just remove something/someone. in the middle 10 edit distance  [1]
         - vectorize code
         - validate semantic thresh  [3]
 
