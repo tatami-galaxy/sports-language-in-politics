@@ -30,11 +30,10 @@
         - validate semantic thresh  [3]
 
 - Sport analogies [1]
-    - immigration paper
-    - augment list?
     - MASK [1]
+        - analogies might be present but most comments will probably not use the analogies
+            - from prob list get classes of tokens?
     - embeddings [2]
-    - parse trees [3]
 
 - Analyze data 
     - build classifier to remove sports and gaming subs 
