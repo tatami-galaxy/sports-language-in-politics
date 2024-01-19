@@ -128,10 +128,20 @@ if __name__ == "__main__":
 
     #data_dict = {"text": president_comments}
     #dataset = Dataset.from_dict(data_dict)
+            
+    # device
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
 
     # load model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = BertForMaskedLM.from_pretrained(args.model_name)
+
+    model.to(device)
 
     # captain : 2952
     # skipper : 23249
@@ -147,9 +157,9 @@ if __name__ == "__main__":
         tokens = ['[MASK]' if token in ['trump', 'trumps', 'biden', 'bidens'] else token for token in tokens]
         masked_comment = ' '.join(tokens)
         # pass through model
-        inputs = tokenizer(masked_comment, return_tensors="pt", truncation=True)
+        inputs = tokenizer(masked_comment, return_tensors="pt", truncation=True).to(device)
         with torch.no_grad():
-            logits = model(**inputs).logits
+            logits = model(**inputs).logits.cpu()
         # get mask token ids
         mask_token_ids = (inputs.input_ids == tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
         # for each masked token (multiple biden mentions)
