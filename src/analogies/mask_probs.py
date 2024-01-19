@@ -1,14 +1,17 @@
 import json
-import polars as pl
 import re
 import math
-from tqdm.auto import tqdm
 import argparse
-import gdown
-from nltk.util import ngrams
-from sentence_transformers import SentenceTransformer, util
 import random
+
+import gdown
+from tqdm.auto import tqdm
+import polars as pl
+
 import torch
+
+from transformers import AutoTokenizer, BertForMaskedLM
+from datasets import Dataset
 
 """
 
@@ -56,7 +59,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model_name",
-        default=None,
+        default="bert-base-uncased",
         type=str,
     )
 
@@ -117,4 +120,44 @@ if __name__ == "__main__":
         shuffle(comments_long)
         comments = comments_long[:args.sample_size]
 
-    # only detect biden/trump for now
+    # build biden/trump dataset
+    president_comments = []
+    for comment in comments:
+        if 'biden' in comment or 'trump' in comment:
+            president_comments.append(comment)
+
+    #data_dict = {"text": president_comments}
+    #dataset = Dataset.from_dict(data_dict)
+
+    # load model and tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    model = BertForMaskedLM.from_pretrained(args.model_name)
+
+    for comment in president_comments:
+
+        tokens = comment.split()
+        tokens = ['[MASK]' if token in ['trump', 'trumps', 'biden', 'bidens'] else token for token in tokens]
+        masked_comment = ' '.join(tokens)
+
+        inputs = tokenizer(masked_comment, return_tensors="pt")
+        with torch.no_grad():
+            logits = model(**inputs).logits
+
+        mask_token_ids = (inputs.input_ids == tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
+        mask_token_index = mask_token_ids[0]  # first MASK # change
+        mask_logits = logits[0, mask_token_index.item()]
+        token_ids = torch.argsort(mask_logits, descending=True)
+
+        count = 0
+        for token_id in token_ids:
+            print(tokenizer.decode(token_id))
+            count += 1
+            if count == 50:
+                quit()
+
+
+    
+
+
+
+
