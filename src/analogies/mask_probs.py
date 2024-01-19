@@ -133,28 +133,54 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = BertForMaskedLM.from_pretrained(args.model_name)
 
+    # captain : 2952
+    # skipper : 23249
+    # quarterback : 9074
+    # coach : 2873
+    token_dict = {}
+
+    bar = tqdm(range(len(president_comments)), position=0)
     for comment in president_comments:
 
         tokens = comment.split()
+        # mask biden/trump
         tokens = ['[MASK]' if token in ['trump', 'trumps', 'biden', 'bidens'] else token for token in tokens]
         masked_comment = ' '.join(tokens)
-
-        inputs = tokenizer(masked_comment, return_tensors="pt")
+        # pass through model
+        inputs = tokenizer(masked_comment, return_tensors="pt", truncation=True)
         with torch.no_grad():
             logits = model(**inputs).logits
-
+        # get mask token ids
         mask_token_ids = (inputs.input_ids == tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
-        mask_token_index = mask_token_ids[0]  # first MASK # change
-        mask_logits = logits[0, mask_token_index.item()]
-        token_ids = torch.argsort(mask_logits, descending=True)
+        # for each masked token (multiple biden mentions)
+        for mask_token_id in mask_token_ids:
+            # get corresponding logits
+            mask_logits = logits[0, mask_token_id.item()]
+            # softmax to get probs for each token in vocab
+            mask_probs = torch.nn.functional.softmax(mask_logits, dim=0)
+            # sort in descending order
+            prob_values, token_ids = torch.sort(mask_probs, descending=True)
+            # for each token in vocab
+            for i in range(len(token_ids)):
+                # decode to get string
+                token = tokenizer.decode(token_ids[i])
+                # prob value
+                value = prob_values[i].item()
+                if token in token_dict:
+                    token_dict[token]['value'] += value
+                    token_dict[token]['count'] += 1
+                else:
+                    token_dict[token] = {'value': value, 'count': 1}
 
-        count = 0
-        for token_id in token_ids:
-            print(tokenizer.decode(token_id))
-            count += 1
-            if count == 50:
-                quit()
+        bar.update(1)
 
+    new_token_dict = {}
+    # normalize probs
+    for key, val in token_dict.items():
+        new_token_dict[key] = val['value'] / val['count']
+    # save
+    with open(args.data_dir+'token_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+        json.dump(new_token_dict, f)
 
     
 
