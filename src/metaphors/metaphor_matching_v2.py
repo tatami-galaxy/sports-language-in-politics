@@ -316,10 +316,13 @@ if __name__ == "__main__":
     #print(sum([len(comment) for comment in comments_long])/len(comments_long))
 
     # sample comments
+    ### need to shuffle IDS ###
     print('sampling')
     if args.sample:
         shuffle(comments_long)
+        shuffle(ids_long)
         comments = comments_long[:args.sample_size]
+        ids = ids_long[:args.sample_size]
 
     # device
     if torch.cuda.is_available():

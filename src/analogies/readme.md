@@ -1,1 +1,1 @@
-python mask_probs.py --sample --sample_size 1000 --cloud
+python mask_probs.py --sample --sample_size 1000 --data_dir `data directory path` --cloud
