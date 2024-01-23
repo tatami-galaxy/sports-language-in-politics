@@ -165,8 +165,6 @@ if __name__ == "__main__":
             # sort in descending order
             prob_values, token_ids = torch.sort(mask_probs, descending=True)
 
-            print(token_ids)
-
             # for each token in vocab
             for i in range(len(token_ids)):
                 # decode to get string
@@ -198,10 +196,10 @@ if __name__ == "__main__":
         new_token_dict[key] = val['value'] / val['count']
     for key, val in comment_dict.items():
         new_comment_dict[key] = {'captain':0, 'coach':0, 'skipper':0, 'quarterback':0}
-        new_comment_dict[key]['captain'] = sum(comment_dict[key]['captain']) / len(comment_dict[key]['captain'])
-        new_comment_dict[key]['coach'] = sum(comment_dict[key]['coach']) / len(comment_dict[key]['coach'])
-        new_comment_dict[key]['skipper'] = sum(comment_dict[key]['skipper']) / len(comment_dict[key]['skipper'])
-        new_comment_dict[key]['quarterback'] = sum(comment_dict[key]['quarterback']) / len(comment_dict[key]['quarterback'])
+        new_comment_dict[key]['captain'] = sum(val['captain']) / len(val['captain'])
+        new_comment_dict[key]['coach'] = sum(val['coach']) / len(val['coach'])
+        new_comment_dict[key]['skipper'] = sum(val['skipper']) / len(val['skipper'])
+        new_comment_dict[key]['quarterback'] = sum(val['quarterback']) / len(val['quarterback'])
 
     # save
     with open(args.data_dir+'token_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
