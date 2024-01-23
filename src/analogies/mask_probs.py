@@ -98,6 +98,9 @@ if __name__ == "__main__":
         data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
         print('done')
 
+    # shuffle dataframe
+    data_df = data_df.sample(fraction=1.0, shuffle=True, seed=args.seed)
+
     # filter comments and ids
     print('filtering comments')
     comments = [comment.replace("'", '') for comment in data_df['body'].to_list()]
@@ -117,8 +120,6 @@ if __name__ == "__main__":
     # sample comments
     print('sampling')
     if args.sample:
-        shuffle(comments_long)
-        shuffle(ids_long)
         comments = comments_long[:args.sample_size]
         ids = ids_long[:args.sample_size]
 
@@ -126,9 +127,12 @@ if __name__ == "__main__":
     president_comments = []
     president_ids = []
     for c in range(len(comments)):
-        if 'biden' in comments[c] or 'trump' in comments[c]:
-            president_comments.append(comments[c])
-            president_ids.append(comments[c])
+        tokens = comments[c].split()
+        for token in tokens:
+            if token in ['trump', 'trumps', 'biden', 'bidens']:
+                president_comments.append(comments[c])
+                president_ids.append(ids[c])
+                break
 
     # load model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -152,6 +156,9 @@ if __name__ == "__main__":
         masked_comment = ' '.join(tokens)
         # pass through model
         inputs = tokenizer(masked_comment, return_tensors="pt", truncation=True)
+        # ignore comment since mask can be truncated out
+        if inputs['input_ids'].shape[-1] >= 512:
+            continue
         with torch.no_grad():
             logits = model(**inputs).logits
         # get mask token ids
@@ -195,6 +202,8 @@ if __name__ == "__main__":
     for key, val in token_dict.items():
         new_token_dict[key] = val['value'] / val['count']
     for key, val in comment_dict.items():
+        if len(val['captain']) < 1:
+            continue
         new_comment_dict[key] = {'captain':0, 'coach':0, 'skipper':0, 'quarterback':0}
         new_comment_dict[key]['captain'] = sum(val['captain']) / len(val['captain'])
         new_comment_dict[key]['coach'] = sum(val['coach']) / len(val['coach'])
