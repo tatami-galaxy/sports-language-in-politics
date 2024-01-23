@@ -148,7 +148,7 @@ if __name__ == "__main__":
     bar = tqdm(range(len(president_comments)), position=0)
     for c in range(len(president_comments)):
 
-        comment_dict[ids[c]] = {'captain':[], 'coach':[], 'skipper':[], 'quarterback':[]}
+        comment_dict[president_ids[c]] = {'captain':[], 'coach':[], 'skipper':[], 'quarterback':[]}
 
         tokens = president_comments[c].split()
         # mask biden/trump
@@ -180,13 +180,13 @@ if __name__ == "__main__":
                 value = prob_values[i].item()
 
                 if token == 'captain':
-                    comment_dict[ids[c]]['captain'].append(value)
+                    comment_dict[president_ids[c]]['captain'].append(value)
                 if token == 'coach':
-                    comment_dict[ids[c]]['coach'].append(value)
+                    comment_dict[president_ids[c]]['coach'].append(value)
                 if token == 'skipper':
-                    comment_dict[ids[c]]['skipper'].append(value)
+                    comment_dict[president_ids[c]]['skipper'].append(value)
                 if token == 'quarterback':
-                    comment_dict[ids[c]]['quarterback'].append(value)
+                    comment_dict[president_ids[c]]['quarterback'].append(value)
                 
                 if token in token_dict:
                     token_dict[token]['value'] += value
