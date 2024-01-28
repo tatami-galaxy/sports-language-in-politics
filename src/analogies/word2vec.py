@@ -8,10 +8,8 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torchtext
 from torchtext.data import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
-from torchtext.data import to_map_style_dataset
 from torch.utils.data import DataLoader
 
 import torch.optim as optim
