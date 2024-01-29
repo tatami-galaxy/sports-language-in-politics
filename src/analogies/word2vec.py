@@ -5,6 +5,8 @@ from functools import partial
 import json
 import yaml
 import numpy as np
+import gdown
+import polars as pl
 
 import torch
 import torch.nn as nn
@@ -164,7 +166,6 @@ class Trainer:
         lr_scheduler,
         device,
         model_dir,
-        model_name,
     ):  
         self.model = model
         self.epochs = epochs
@@ -178,7 +179,6 @@ class Trainer:
         self.lr_scheduler = lr_scheduler
         self.device = device
         self.model_dir = model_dir
-        self.model_name = model_name
 
         self.loss = {"train": [], "val": []}
         self.model.to(self.device)
@@ -326,8 +326,13 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
+        "--data_dir",
+        default=root+'/data/processed/',
+        type=str,
+    )
+    parser.add_argument(
         "--model_dir",
-        default=root+'/models/',
+        default=root+'/models/cbow/',
         type=str,
     )
     
@@ -337,6 +342,40 @@ if __name__ == '__main__':
     import random
     random.seed(args.seed)
     from random import shuffle
+
+    # check if data directory is None
+    if args.data_dir is None:
+        raise ValueError(
+            f"pass in data_dir"
+        )
+    elif args.data_dir[-1] != '/':
+        args.data_dir = args.data_dir+'/'
+
+    # load data
+    if args.cloud:
+        # download political comments
+        print('downloading political comments')
+        gdown.download(
+            id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
+            output='politics_sample.csv', quiet=False
+        )
+        # download sports comments
+        print('downloading sports comments')
+        gdown.download(
+            id="1Xc6VXdG8cloh8tdxAaboQewkilgvWxub",
+            output='sports_sample.csv', quiet=False
+        )
+
+        # load political and sports comments
+        politics_df = pl.read_csv('politics_sample.csv').drop_nulls()
+        sports_df = pl.read_csv('sports_sample.csv').drop_nulls()
+
+    # local
+    else:
+        # load political and sport comments
+        print('loading political and sports comments')
+        politics_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
+        sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls()
 
     dataset = load_dataset('wikitext', 'wikitext-2-v1')
     tokenizer = get_tokenizer("basic_english", language="en")
@@ -384,7 +423,6 @@ if __name__ == '__main__':
         lr_scheduler=lr_scheduler,
         device=device,
         model_dir=args.model_dir,
-        model_name='cbow'
     )
 
     trainer.train()
