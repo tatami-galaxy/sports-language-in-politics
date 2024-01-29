@@ -7,6 +7,7 @@ import yaml
 import numpy as np
 import gdown
 import polars as pl
+import re 
 
 import torch
 import torch.nn as nn
@@ -18,11 +19,12 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
 
 from datasets import load_dataset
+from datasets import Dataset
 
 CBOW_N_WORDS = 4
 SKIPGRAM_N_WORDS = 4
 
-MIN_WORD_FREQUENCY = 50
+MIN_WORD_FREQUENCY = 20
 MAX_SEQUENCE_LENGTH = 256
 
 EMBED_DIMENSION = 300
@@ -282,17 +284,17 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--sample_size",
-        default=50000,
+        default=5000,
         type=int,
     )
     parser.add_argument(
         "--data_dir",
-        default='/users/ujan/sports-language-in-politics/data/processed/',
+        default=root+'/data/processed/',
         type=str,
     )
     parser.add_argument(
         "--min_comment_length",
-        default=150,  # chars
+        default=50,  # chars
         type=int,
     )
     parser.add_argument(
@@ -326,15 +328,15 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
-        "--data_dir",
-        default=root+'/data/processed/',
-        type=str,
-    )
-    parser.add_argument(
         "--model_dir",
         default=root+'/models/cbow/',
         type=str,
     )
+    parser.add_argument(
+        "--subs",
+        default=['democrats'],
+    )
+
     
     args = parser.parse_args()
 
@@ -377,7 +379,40 @@ if __name__ == '__main__':
         politics_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
         sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls()
 
-    dataset = load_dataset('wikitext', 'wikitext-2-v1')
+    # filter out subs
+    data_df = politics_df.filter(pl.col('subreddit').is_in(args.subs))
+    # shuffle dataframe
+    data_df = data_df.sample(fraction=1.0, shuffle=True, seed=args.seed)
+
+    # get sports sample of same length after shuffle
+    sports_df = sports_df.sample(fraction=1.0, shuffle=True, seed=args.seed)[:len(data_df)]
+
+    # concat dfs and shuffle again
+    data_df = pl.concat([data_df, sports_df]).sample(fraction=1.0, shuffle=True, seed=args.seed)
+
+    # filter comments
+    print('filtering comments')
+    comments = [comment.replace("'", '')
+                for comment in data_df['body'].to_list()]
+    comments = [re.sub(r"[^a-zA-Z0-9]+", ' ', comment).lower()
+                for comment in comments]
+
+    comments_long = []
+    # filter by char
+    for c in range(len(comments)):
+        if len(comments[c]) >= args.min_comment_length:
+            comments_long.append(comments[c])
+
+    # sample comments
+    if args.sample:
+        print('sampling')
+        comments = comments_long[:args.sample_size]
+    else: comments = comments_long
+
+    # convert into dataset
+    data_dict = {"text": comments}
+    dataset = Dataset.from_dict(data_dict).train_test_split(test_size=0.1)
+
     tokenizer = get_tokenizer("basic_english", language="en")
 
     train_dataloader, vocab = get_dataloader_and_vocab(
@@ -389,7 +424,7 @@ if __name__ == '__main__':
     )
     eval_dataloader, _ = get_dataloader_and_vocab(
         dataset=dataset,
-        ds_type="validation",
+        ds_type="test",
         batch_size=args.eval_batch_size,
         tokenizer=tokenizer,
         vocab=vocab,

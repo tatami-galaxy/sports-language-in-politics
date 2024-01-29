@@ -317,6 +317,7 @@ if __name__ == "__main__":
 
     # sample comments
     ### need to shuffle IDS ###
+    ## wrong. shuffle df ##
     print('sampling')
     if args.sample:
         shuffle(comments_long)
