@@ -8,7 +8,7 @@ def main():
     req = [
         'scikit-learn', 'nltk', 'transformers', 'datasets', 'accelerate', 'evaluate', 
         'nltk', 'polars', 'shap', 'matplotlib', 'gdown', 'sentence_transformers', 'editdistance',
-        'torchtext',
+        'torchtext', 'plotly'
     ]
 
     parser = argparse.ArgumentParser()
@@ -20,6 +20,7 @@ def main():
     os.mkdir('data/processed')
 
     os.mkdir('models')
+    os.mkdir('models/cbow')
 
     # install packages
     for package in req:
