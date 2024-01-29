@@ -31,9 +31,11 @@
 
 - Sport analogies [1]
     - MASK [1]
-        - analogies might be present but most comments will probably not use the analogies
-            - from prob list get classes of tokens?
-    - embeddings [2]
+    - embeddings [1]
+        - train for longer
+        - multiple subs?
+        - plot + calc distances
+        - increase vocab
 
 - Analyze data 
     - build classifier to remove sports and gaming subs 
