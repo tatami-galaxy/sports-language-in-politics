@@ -294,7 +294,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--min_comment_length",
-        default=50,  # chars
+        default=100,  # chars
         type=int,
     )
     parser.add_argument(
@@ -334,7 +334,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['democrats'],
+        default=['socialism'],
     )
 
     
