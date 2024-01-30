@@ -91,11 +91,11 @@ if __name__ == "__main__":
         # download political comments
         gdown.download(
             id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
-            output='politics_sample.csv', quiet=False
+            output=args.data_dir+'politics_sample.csv', quiet=False
         )
         # load political comments
         print('loading political comments')
-        data_df = pl.read_csv('politics_sample.csv').drop_nulls()
+        data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
 
 
     # local
