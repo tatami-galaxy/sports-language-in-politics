@@ -319,7 +319,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--train_steps",
-        default=5000,
+        default=20000,
         type=int,
     )
     parser.add_argument(
