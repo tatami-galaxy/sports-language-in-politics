@@ -12,8 +12,8 @@ import torch
 
 from transformers import AutoTokenizer, BertForMaskedLM
 
-TARGETS = ['democratic party', 'democrats', 'republican party', 'republicans']
-SUBSTITUTES = ['team', 'teams']
+TARGETS = ['election', 'elections']
+SUBSTITUTES = ['race', 'competition', 'championship', 'tournament']
 
 # get root directory
 root = abspath(__file__)

@@ -334,7 +334,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['socialism'],
+        default=['JoeBiden'],
     )
 
     
@@ -359,18 +359,18 @@ if __name__ == '__main__':
         print('downloading political comments')
         gdown.download(
             id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
-            output='politics_sample.csv', quiet=False
+            output=args.data_dir+'politics_sample.csv', quiet=False
         )
         # download sports comments
         print('downloading sports comments')
         gdown.download(
             id="1Xc6VXdG8cloh8tdxAaboQewkilgvWxub",
-            output='sports_sample.csv', quiet=False
+            output=args.data_dir+'sports_sample.csv', quiet=False
         )
 
         # load political and sports comments
-        politics_df = pl.read_csv('politics_sample.csv').drop_nulls()
-        sports_df = pl.read_csv('sports_sample.csv').drop_nulls()
+        politics_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
+        sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls()
 
     # local
     else:
