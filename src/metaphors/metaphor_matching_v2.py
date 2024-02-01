@@ -1,3 +1,4 @@
+from os.path import dirname, abspath
 import json
 import polars as pl
 import re
@@ -11,7 +12,13 @@ import random
 import editdistance
 import torch
 
-no_list = ['out', 'up', 'tip']
+no_list = ['out', 'up', 'tip', 'check']
+
+# get root directory
+root = abspath(__file__)
+while root.split('/')[-1] != 'sports-language-in-politics':
+    root = dirname(root)
+
 
 def ngram_edit_distance_match(meta_list, comments, ids, args):
 
@@ -159,7 +166,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--data_dir",
-        default='/users/ujan/sports-language-in-politics/data/processed/',
+        default=root+'/data/processed/',
         type=str,
     )
     parser.add_argument(
@@ -288,6 +295,9 @@ if __name__ == "__main__":
         print('truncating metaphor list')
         meta_list = meta_list[:args.max_meta]
 
+    # shuffle dataframe
+    data_df = data_df.sample(fraction=1.0, shuffle=True, seed=args.seed)
+
     # filter comments and ids
     print('filtering comments')
     if args.data == 'politics':
@@ -305,23 +315,14 @@ if __name__ == "__main__":
             comments_long.append(comments[c])
             ids_long.append(ids[c])
 
-    # filter by word
-    #lens = [len(c.split()) for c in comments]
-    #for i in range(len(comments)):
-        #if lens[i] >= args.min_comment_length:
-            #comments_long.append(comments[i])
     print('done')
 
     # average comment lengths -> political : 435.14  random : 432.06
     #print(sum([len(comment) for comment in comments_long])/len(comments_long))
 
     # sample comments
-    ### need to shuffle IDS ###
-    ## wrong. shuffle df ##
     print('sampling')
     if args.sample:
-        shuffle(comments_long)
-        shuffle(ids_long)
         comments = comments_long[:args.sample_size]
         ids = ids_long[:args.sample_size]
 

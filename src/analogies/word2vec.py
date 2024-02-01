@@ -22,7 +22,7 @@ from datasets import load_dataset
 from datasets import Dataset
 
 CBOW_N_WORDS = 4
-SKIPGRAM_N_WORDS = 4
+#SKIPGRAM_N_WORDS = 4
 
 MIN_WORD_FREQUENCY = 20
 MAX_SEQUENCE_LENGTH = 256
