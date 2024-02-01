@@ -235,27 +235,27 @@ if __name__ == "__main__":
         if args.data == 'politics':
             gdown.download(
                 id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
-                output='politics_sample.csv', quiet=False
+                output=args.data_dir+'politics_sample.csv', quiet=False
             )
         # download random comments
         elif args.data == 'random':
             gdown.download(
                 id="1_WQ7UhOVGD2pIeiTfGvfGpD6wvpd0L3-",
-                output='random_sample_no_sports_v1.csv', quiet=False
+                output=args.data_dir+'random_sample_no_sports_v1.csv', quiet=False
             )  # update random sample 
 
         # load political and random comments
         if args.data == 'politics':
-            data_df = pl.read_csv('politics_sample.csv').drop_nulls()
+            data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
         elif args.data == 'random':
-            data_df = pl.read_csv('random_sample_no_sports_v1.csv')  # dont drop nulls
+            data_df = pl.read_csv(args.data_dir+'random_sample_no_sports_v1.csv')  # dont drop nulls
             
         # download metaphors
         gdown.download(
             id="1zDdechsAiV2A8EkZWAVclTyV1o8osK1c",
-            output='meta_dict_full.json', quiet=False
+            output=args.data_dir+'meta_dict_full.json', quiet=False
         )
-        with open('meta_dict_full.json', 'r') as fp:
+        with open(args.data_dir+'meta_dict_full.json', 'r') as fp:
             data = json.load(fp)
 
     # local
@@ -263,15 +263,11 @@ if __name__ == "__main__":
         # load political and random comments
         if args.data == 'politics':
             print('loading political comments')
-            data_df = pl.read_csv(
-                args.data_dir+'politics_sample.csv').drop_nulls()
-            print('done')
+            data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
+
         elif args.data == 'random':
             print('loading random comments')  # update random sample
-            ## fix sample ##
-            data_df = pl.read_csv(
-                args.data_dir+'random_sample_no_sports_v1.csv')  # dont drop nulls
-            print('done')
+            data_df = pl.read_csv(args.data_dir+'random_sample_no_sports_v1.csv')  # dont drop nulls
             
         # load metaphors
         with open(args.data_dir+'meta_dict_full.json', 'r') as fp:
