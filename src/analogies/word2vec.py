@@ -18,13 +18,12 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
 
-from datasets import load_dataset
 from datasets import Dataset
 
-CBOW_N_WORDS = 4
+CBOW_N_WORDS = 7
 #SKIPGRAM_N_WORDS = 4
 
-MIN_WORD_FREQUENCY = 20
+MIN_WORD_FREQUENCY = 50
 MAX_SEQUENCE_LENGTH = 256
 
 EMBED_DIMENSION = 300
@@ -334,7 +333,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['JoeBiden'],
+        default=['politics'],  # The_Donald
     )
 
     
