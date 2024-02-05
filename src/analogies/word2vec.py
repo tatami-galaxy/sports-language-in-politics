@@ -8,6 +8,7 @@ import numpy as np
 import gdown
 import polars as pl
 import re 
+from nltk.corpus import stopwords
 
 import torch
 import torch.nn as nn
@@ -20,7 +21,7 @@ from torch.optim.lr_scheduler import LambdaLR
 
 from datasets import Dataset
 
-CBOW_N_WORDS = 4
+CBOW_N_WORDS = 5
 #SKIPGRAM_N_WORDS = 4
 
 MIN_WORD_FREQUENCY = 50
@@ -28,6 +29,14 @@ MAX_SEQUENCE_LENGTH = 256
 
 EMBED_DIMENSION = 300
 EMBED_MAX_NORM = 1
+
+
+## check if in vocab ##
+imp_tokens = [
+    'biden', 'trump', 'coach', 'captain', 'politician', 'fan',
+    'election', 'party', 'team', 'race', 'voter', 'quarterback',
+    'democrats', 'republicans',
+]
 
 # get root directory
 root = abspath(__file__)
@@ -278,6 +287,10 @@ if __name__ == '__main__':
         action="store_true",
     )
     parser.add_argument(
+        "--stop_words",
+        action="store_true",
+    )
+    parser.add_argument(
         "--sample",
         action="store_true",
     )
@@ -408,6 +421,21 @@ if __name__ == '__main__':
         comments = comments_long[:args.sample_size]
     else: comments = comments_long
 
+    # remove stopwords 
+    if args.stop_words:
+        print('removing stop words')
+        stop_words = set(stopwords.words("english"))
+        new_comments = []
+        for comment in comments:
+            new_tokens = []
+            tokens = comment.split()
+            for token in tokens:
+                if token not in stop_words:
+                    new_tokens.append(token)
+            new_comment = ' '.join(new_tokens)
+            new_comments.append(new_comment)
+        comments = new_comments
+
     # convert into dataset
     data_dict = {"text": comments}
     dataset = Dataset.from_dict(data_dict).train_test_split(test_size=0.1)
@@ -432,12 +460,14 @@ if __name__ == '__main__':
     vocab_size = len(vocab.get_stoi())
     print(f"Vocabulary size: {vocab_size}")
 
+    # check imp tokens 
+    for token in imp_tokens:
+        if token not in vocab.get_itos():
+            raise ValueError('imp token not in vocab')
+
     model = CBOW_Model(vocab_size=vocab_size)
-
     criterion = nn.CrossEntropyLoss()
-
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-
     lr_scheduler = get_lr_scheduler(optimizer, args.epochs, verbose=True)
 
     if torch.backends.mps.is_available(): device = "mps"
