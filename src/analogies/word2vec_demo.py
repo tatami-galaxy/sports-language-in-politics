@@ -286,11 +286,6 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
-        "--data_dir",
-        default='/users/ujan/sports-language-in-politics/data/processed/',
-        type=str,
-    )
-    parser.add_argument(
         "--min_comment_length",
         default=150,  # chars
         type=int,
@@ -367,9 +362,11 @@ if __name__ == '__main__':
 
     lr_scheduler = get_lr_scheduler(optimizer, args.epochs, verbose=True)
 
-    if torch.backends.mps.is_available(): device = "mps"
-    elif torch.cuda.is_available(): device = "cuda"
-    else: device = "cpu"
+    #if torch.backends.mps.is_available(): device = "mps"
+    #elif torch.cuda.is_available(): device = "cuda"
+    #else: device = "cpu"
+
+    device = "cpu"
 
     trainer = Trainer(
         model=model,

@@ -1,20 +1,14 @@
 ### Readings
-- No country for old members
-- Political homophily
-- Quantifying political polarization
-- Immigration framing
 - statistical significance tests
     - unpaired t test [2]
 
 ### Detecting sports language/terminology in politics
 
 - Metaphors can mean different things
-    - how to select metaphors?
-        - frequency/TF-IDF using NOW dataset
-            - filter sports articles first -> measure freqeuncy of metaphors from rest
-            - how to select topk?
-                - does it matter? -> try different topk
-                - dont filter for now 
+    - WSD [1]
+        - t5-large-word-sense-disambiguation not working, fine code/paper
+        - other models [1]
+    - other methods [1]
 
 - Edit Metaphor csv 
     - re-verify metaphors
@@ -24,23 +18,34 @@
 - How to detect metaphors
     - edit distance + semantic similarity
         - store edit, semantic values, comments / comment ids
-        - "someone", "something", etc.  [1]
-            - for the ones at the beginning or end, just remove something/someone. in the middle 10 edit distance  [1]
+        - "someone", "something", etc.
+            - for the ones at the beginning or end,
+              just remove something/someone. in the middle 10 edit distance
         - vectorize code
-        - validate semantic thresh  [3]
+        - validate semantic thresh 
 
-- Sport analogies [1]
-    - MASK [1]
-    - embeddings [1]
-        - train for longer
-        - multiple subs?
-        - plot + calc distances
-        - increase vocab
-
-- Analyze data 
-    - build classifier to remove sports and gaming subs 
-        - ngram, bert etc.
-    - use classifier to filter remaining data
+- Sport analogies
+    - MASK
+        - compare MASK replacement probabilities with target probabilities
+            - average values [1]
+            - comments with lowest difference [1]
+    - word2vec [1]
+        - cosine score low : How to fix?
+            - seeds -> not changing values
+            - stop words -> not changing values
+            - epochs -> not changing values
+            - embeddings norm value
+                - not changing values (maybe slightly higher is better?)
+            - context window [1]
+                - not changing values
+            - POS tagging [1]
+                - 
+        - validate -> random mappings, other methods from papers [1]
+            -
+        - T tests? [2]
+        - embedding bias (sports terms <-> political terms?) [2]
+        - What similarity values are acceptable?
+            - “While differences in word association are measurable and are often significant, small differences in cosine similarity are not reliable, especially for small corpora. If the intention of a study is to learn about a specific corpus, we recommend that practitioners test the statistical confidence of similarities based on word embeddings by training on multiple bootstrap samples”
 
 - How to calculate lm probabilites?
     - analyze
