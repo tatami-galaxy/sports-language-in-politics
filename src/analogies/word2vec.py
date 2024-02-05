@@ -8,6 +8,9 @@ import numpy as np
 import gdown
 import polars as pl
 import re 
+
+import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 import torch
