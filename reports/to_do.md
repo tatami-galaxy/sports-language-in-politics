@@ -4,31 +4,23 @@
 
 ### Detecting sports language/terminology in politics
 
-- Metaphors can mean different things
-    - WSD [1]
-        - t5-large-word-sense-disambiguation not working, fine code/paper
-        - other models [1]
-    - other methods [1]
-
-- Edit Metaphor csv 
-    - re-verify metaphors
-    - check spellings
-    - remove duplicates
-
 - How to detect metaphors
-    - edit distance + semantic similarity
-        - store edit, semantic values, comments / comment ids
-        - "someone", "something", etc.
-            - for the ones at the beginning or end,
-              just remove something/someone. in the middle 10 edit distance
+    - edit distance + semantic similarity, "someone", "something", etc.
         - vectorize code
         - validate semantic thresh 
+        - check spellings
+        
+- Metaphors can mean different things
+    - WSD [1]
+        - t5-large-word-sense-disambiguation not working, find code/paper
+        - other models [1]
+    - other methods [1]
 
 - Sport analogies
     - MASK
         - compare MASK replacement probabilities with target probabilities
-            - average values [1]
-            - comments with lowest difference [1]
+            - average values
+            - comments with negative difference
     - word2vec [1]
         - cosine score low : How to fix?
             - seeds -> not changing values
@@ -36,7 +28,7 @@
             - epochs -> not changing values
             - embeddings norm value
                 - not changing values (maybe slightly higher is better?)
-            - context window [1]
+            - context window
                 - not changing values
             - POS tagging [1]
                 - 

@@ -12,12 +12,15 @@ import torch
 
 from transformers import AutoTokenizer, BertForMaskedLM
 
-#TARGETS = ['election', 'elections']
+#TARGETS = ['election'] # cant have multiple with current logic
 #TARGETS = ['biden', 'trump']
-TARGETS = ['democratic party', 'democrats', 'republican party', 'republicans']
+#TARGETS = ['democratic party', 'democrats', 'republican party', 'republicans']
+#TARGETS = ['voters']
+TARGETS = ['president']
 #SUBSTITUTES = ['race', 'competition', 'championship', 'tournament']
-#SUBSTITUTES = ['captain', 'coach', 'quarterback', 'skipper']
-SUBSTITUTES = ['team', 'teams']
+SUBSTITUTES = ['captain', 'coach', 'quarterback', 'skipper']
+#SUBSTITUTES = ['team', 'teams']
+#SUBSTITUTES = ['fan', 'fans', 'spectator', 'spectators']
 
 # get root directory
 root = abspath(__file__)
@@ -207,18 +210,18 @@ if __name__ == "__main__":
     # normalize probs
     for key, val in token_dict.items():
         new_token_dict[key] = val['value'] / val['count']
-    #for key, val in comment_dict.items():
-        #if len(val[SUBSTITUTES[0]]) < 1:
-            #continue
-        #new_comment_dict[key] = {s:0 for s in TARGETS+SUBSTITUTES}
-        #for sub in TARGETS+SUBSTITUTES:
-            #new_comment_dict[key][sub] = sum(val[sub]) / len(val[sub])
+    for key, val in comment_dict.items():
+        if len(val[SUBSTITUTES[0]]) < 1:
+            continue
+        new_comment_dict[key] = {s:0 for s in TARGETS+SUBSTITUTES}
+        for sub in TARGETS+SUBSTITUTES:
+            new_comment_dict[key][sub] = sum(val[sub]) / len(val[sub])
 
     # save
     with open(args.data_dir+'token_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
         json.dump(new_token_dict, f)
-    #with open(args.data_dir+'comment_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
-        #json.dump(new_comment_dict, f)
+    with open(args.data_dir+'comment_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+        json.dump(new_comment_dict, f)
 
     
 
