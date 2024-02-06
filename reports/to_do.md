@@ -30,10 +30,12 @@
             - context window -> not changing values
             - min word frequency -> not changing values
             - POS tagging -> [1]
-        - validate -> random mappings, other methods from papers [1]
+            - train longer -> [2]
+        - validate -> random mappings, other methods from papers [2]
         - embedding bias (sports terms <-> political terms?) [2]
         - What similarity values are acceptable?
             - “While differences in word association are measurable and are often significant, small differences in cosine similarity are not reliable, especially for small corpora. If the intention of a study is to learn about a specific corpus, we recommend that practitioners test the statistical confidence of similarities based on word embeddings by training on multiple bootstrap samples”
+        - cosine vs euclidean [3]
         - T tests? [2]
 
 - How to calculate lm probabilites?

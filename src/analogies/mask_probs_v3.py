@@ -12,13 +12,13 @@ import torch
 
 from transformers import AutoTokenizer, BertForMaskedLM
 
-#TARGETS = ['election'] # cant have multiple with current logic
+TARGETS = ['election'] # cant have multiple with current logic
 #TARGETS = ['biden', 'trump']
 #TARGETS = ['democratic party', 'democrats', 'republican party', 'republicans']
 #TARGETS = ['voters']
-TARGETS = ['president']
-#SUBSTITUTES = ['race', 'competition', 'championship', 'tournament']
-SUBSTITUTES = ['captain', 'coach', 'quarterback', 'skipper']
+#TARGETS = ['president']
+SUBSTITUTES = ['race', 'competition', 'championship', 'tournament']
+#SUBSTITUTES = ['captain', 'coach', 'quarterback', 'skipper']
 #SUBSTITUTES = ['team', 'teams']
 #SUBSTITUTES = ['fan', 'fans', 'spectator', 'spectators']
 

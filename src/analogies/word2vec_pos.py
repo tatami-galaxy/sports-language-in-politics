@@ -459,11 +459,12 @@ if __name__ == '__main__':
             tagger.predict(sentence)
             com = []
             for token in sentence:
-                if token.tag not in ['NNP', 'NNPS']: # proper noun
+                if token.tag not in ['NNP', 'NNPS'] or token.form in imp_tokens:  # proper noun
                     com.append(token.form)
+            
             clean_comments.append(' '.join(com))
             bar.update(1)
-            
+
         comments = clean_comments
 
     # convert into dataset
