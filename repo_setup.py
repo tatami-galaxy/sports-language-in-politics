@@ -8,7 +8,7 @@ def main():
     req = [
         'scikit-learn', 'nltk', 'transformers', 'datasets', 'accelerate', 'evaluate', 
         'nltk', 'polars', 'shap', 'matplotlib', 'gdown', 'sentence_transformers', 'editdistance',
-        'torchtext', 'plotly'
+        'torchtext', 'plotly', 'flair',
     ]
 
     parser = argparse.ArgumentParser()

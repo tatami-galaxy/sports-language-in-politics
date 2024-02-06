@@ -9,7 +9,7 @@
         - vectorize code
         - validate semantic thresh 
         - check spellings
-        
+
 - Metaphors can mean different things
     - WSD [1]
         - t5-large-word-sense-disambiguation not working, find code/paper
@@ -26,18 +26,15 @@
             - seeds -> not changing values
             - stop words -> not changing values
             - epochs -> not changing values
-            - embeddings norm value
-                - not changing values (maybe slightly higher is better?)
-            - context window
-                - not changing values
-            - POS tagging [1]
-                - 
+            - embeddings norm value -> not changing values (maybe slightly higher is better?)
+            - context window -> not changing values
+            - min word frequency -> not changing values
+            - POS tagging -> [1]
         - validate -> random mappings, other methods from papers [1]
-            -
-        - T tests? [2]
         - embedding bias (sports terms <-> political terms?) [2]
         - What similarity values are acceptable?
             - “While differences in word association are measurable and are often significant, small differences in cosine similarity are not reliable, especially for small corpora. If the intention of a study is to learn about a specific corpus, we recommend that practitioners test the statistical confidence of similarities based on word embeddings by training on multiple bootstrap samples”
+        - T tests? [2]
 
 - How to calculate lm probabilites?
     - analyze
