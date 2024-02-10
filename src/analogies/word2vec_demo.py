@@ -336,6 +336,13 @@ if __name__ == '__main__':
     dataset = load_dataset('wikitext', 'wikitext-2-v1')
     tokenizer = get_tokenizer("basic_english", language="en")
 
+    word_count = 0
+    for text in dataset['train']['text']:
+        if text != '':
+            word_count += len(text.split())
+
+    print('word count : {}'.format(word_count))
+
     train_dataloader, vocab = get_dataloader_and_vocab(
         dataset=dataset,
         ds_type="train",

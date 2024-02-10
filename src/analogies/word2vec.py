@@ -27,7 +27,7 @@ from datasets import Dataset
 CBOW_N_WORDS = 5
 #SKIPGRAM_N_WORDS = 4
 
-MIN_WORD_FREQUENCY = 20
+MIN_WORD_FREQUENCY = 50
 MAX_SEQUENCE_LENGTH = 256
 
 EMBED_DIMENSION = 300
@@ -349,7 +349,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['politics'],  # The_Donald
+        default=['The_Donald', 'Conservative'],  # ['The_Donald', 'Conservative'] -> 14M words
     )
 
     
@@ -422,7 +422,14 @@ if __name__ == '__main__':
     if args.sample:
         print('sampling')
         comments = comments_long[:args.sample_size]
+
     else: comments = comments_long
+
+    print('total comments : {}'.format(len(comments)))
+    word_count = 0
+    for comment in comments:
+        word_count += len(comment.split())
+    print('total words : {}'.format(word_count))
 
     # remove stopwords 
     if args.stop_words:
