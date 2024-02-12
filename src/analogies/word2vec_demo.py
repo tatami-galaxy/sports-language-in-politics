@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import LambdaLR
 
 from datasets import load_dataset
 
-CBOW_N_WORDS = 4
+CBOW_N_WORDS = 5
 SKIPGRAM_N_WORDS = 4
 
 MIN_WORD_FREQUENCY = 50
@@ -360,6 +360,8 @@ if __name__ == '__main__':
 
     vocab_size = len(vocab.get_stoi())
     print(f"Vocabulary size: {vocab_size}")
+
+    print('total_words : vocab = {}'.format(word_count/vocab_size))
 
     quit()
 

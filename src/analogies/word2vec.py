@@ -24,7 +24,7 @@ from torch.optim.lr_scheduler import LambdaLR
 
 from datasets import Dataset
 
-CBOW_N_WORDS = 5
+CBOW_N_WORDS = 20
 #SKIPGRAM_N_WORDS = 4
 
 MIN_WORD_FREQUENCY = 50
@@ -72,8 +72,8 @@ def collate_cbow(batch, text_pipeline):
         text_tokens_ids = text_pipeline(text)
 
         # ignoring unk
-        text_tokens_ids = [t for t in text_tokens_ids if t!=0]
-        
+        #text_tokens_ids = [t for t in text_tokens_ids if t!=0]
+
         if len(text_tokens_ids) < CBOW_N_WORDS * 2 + 1:
             continue
 
@@ -352,7 +352,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['The_Donald', 'Conservative'],  # ['The_Donald', 'Conservative'] -> 14M words
+        default=['The_Donald'],  # ['The_Donald', 'Conservative'] -> 14M words
     )
 
     
@@ -472,6 +472,8 @@ if __name__ == '__main__':
 
     vocab_size = len(vocab.get_stoi())
     print(f"Vocabulary size: {vocab_size}")
+
+    print('total_words : vocab = {}'.format(word_count/vocab_size))
 
     # check imp tokens 
     for token in imp_tokens:
