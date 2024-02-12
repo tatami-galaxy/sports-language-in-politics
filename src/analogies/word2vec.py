@@ -71,6 +71,9 @@ def collate_cbow(batch, text_pipeline):
     for text in batch:
         text_tokens_ids = text_pipeline(text)
 
+        # ignoring unk
+        text_tokens_ids = [t for t in text_tokens_ids if t!=0]
+        
         if len(text_tokens_ids) < CBOW_N_WORDS * 2 + 1:
             continue
 

@@ -361,6 +361,8 @@ if __name__ == '__main__':
     vocab_size = len(vocab.get_stoi())
     print(f"Vocabulary size: {vocab_size}")
 
+    quit()
+
     model = CBOW_Model(vocab_size=vocab_size)
 
     criterion = nn.CrossEntropyLoss()
