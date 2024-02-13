@@ -230,9 +230,9 @@ if __name__ == "__main__":
             new_comment_dict[key][sub] = sum(val[sub]) / len(val[sub])
 
     # save
-    with open(args.data_dir+'token_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+    with open(args.data_dir+'token_dict_'+TARGETS[0]+'_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
         json.dump(new_token_dict, f)
-    with open(args.data_dir+'comment_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+    with open(args.data_dir+'comment_dict_'+TARGETS[0]+'_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
         json.dump(new_comment_dict, f)
 
     

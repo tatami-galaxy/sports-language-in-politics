@@ -24,7 +24,7 @@ from torch.optim.lr_scheduler import LambdaLR
 
 from datasets import Dataset
 
-CBOW_N_WORDS = 20
+CBOW_N_WORDS = 5
 #SKIPGRAM_N_WORDS = 4
 
 MIN_WORD_FREQUENCY = 20
