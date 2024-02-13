@@ -376,13 +376,13 @@ if __name__ == '__main__':
         # download political comments
         print('downloading political comments')
         gdown.download(
-            id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
+            id="1MFZLxtO7CnE24SzsQXfeoEolgXgeH-gK",
             output=args.data_dir+'politics_sample.csv', quiet=False
         )
         # download sports comments
         print('downloading sports comments')
         gdown.download(
-            id="1Xc6VXdG8cloh8tdxAaboQewkilgvWxub",
+            id="1V3J3g-zoPBMHKIJVKoCje3M04gsCJf55",
             output=args.data_dir+'sports_sample.csv', quiet=False
         )
 
