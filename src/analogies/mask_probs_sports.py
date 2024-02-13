@@ -12,15 +12,15 @@ import torch
 
 from transformers import AutoTokenizer, BertForMaskedLM
 
-#TARGETS = ['election'] # cant have multiple with current logic
+TARGETS = ['fans'] # cant have multiple with current logic
 #TARGETS = ['biden', 'trump']
 #TARGETS = ['democratic party', 'democrats', 'republican party', 'republicans']
-TARGETS = ['voters']
+#TARGETS = ['voters']
 #TARGETS = ['president']
-#SUBSTITUTES = ['race', 'competition', 'championship', 'tournament']
+SUBSTITUTES = ['voters']
 #SUBSTITUTES = ['captain', 'coach', 'quarterback', 'skipper']
 #SUBSTITUTES = ['team', 'teams']
-SUBSTITUTES = ['fan', 'fans', 'spectator', 'spectators']
+#SUBSTITUTES = ['fan', 'fans', 'spectator', 'spectators']
 
 # get root directory
 root = abspath(__file__)
@@ -98,18 +98,18 @@ if __name__ == "__main__":
         # download political comments
         gdown.download(
             id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
-            output=args.data_dir+'politics_sample.csv', quiet=False
+            output=args.data_dir+'sports_sample.csv', quiet=False
         )
         # load political comments
         print('loading political comments')
-        data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
+        data_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls()
 
 
     # local
     else:
         # load political and random comments
-        print('loading political comments')
-        data_df = pl.read_csv(args.data_dir+'politics_sample.csv').drop_nulls()
+        print('loading sports comments')
+        data_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls()
         print('done')
 
     # shuffle dataframe
@@ -230,9 +230,9 @@ if __name__ == "__main__":
             new_comment_dict[key][sub] = sum(val[sub]) / len(val[sub])
 
     # save
-    with open(args.data_dir+'token_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+    with open(args.data_dir+'token_dict_sports_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
         json.dump(new_token_dict, f)
-    with open(args.data_dir+'comment_dict_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
+    with open(args.data_dir+'comment_dict_sports_'+str(args.seed)+'_'+str(args.sample_size)+'.json', 'w') as f:
         json.dump(new_comment_dict, f)
 
     

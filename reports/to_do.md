@@ -29,8 +29,10 @@
             - embeddings norm value -> not changing values (maybe slightly higher is better?)
             - context window -> not changing values
             - min word frequency -> not changing values
-            - POS tagging -> [1]
-            - train longer -> [2]
+            - 20 context length -> not changing values
+            - ignore UNK -> not changing values
+            - POS tagging -> not changing values
+            - train longer -> [1]
         - validate -> random mappings, other methods from papers [2]
         - embedding bias (sports terms <-> political terms?) [2]
         - What similarity values are acceptable?
