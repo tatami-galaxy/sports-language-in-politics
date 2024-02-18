@@ -12,8 +12,7 @@
 
 - Metaphors can mean different things
     - WSD [1]
-        - t5-large-word-sense-disambiguation not working, find code/paper
-        - other models [1]
+        - gloss-bert [1]
     - other methods [1]
 
 - Sport analogies
@@ -33,7 +32,12 @@
             - ignore UNK -> not changing values
             - POS tagging -> not changing values
             - train longer -> [1]
-        - validate -> random mappings, other methods from papers [2]
+        - validate
+            - intrinsic
+                - king, queen
+                - taget words
+            - extrinsic
+                - use embeddings on downstream tasks
         - embedding bias (sports terms <-> political terms?) [2]
         - What similarity values are acceptable?
             - “While differences in word association are measurable and are often significant, small differences in cosine similarity are not reliable, especially for small corpora. If the intention of a study is to learn about a specific corpus, we recommend that practitioners test the statistical confidence of similarities based on word embeddings by training on multiple bootstrap samples”
