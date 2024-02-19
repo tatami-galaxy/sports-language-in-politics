@@ -97,7 +97,7 @@ if __name__ == "__main__":
     if args.cloud:
         # download political comments
         gdown.download(
-            id="1EVu3LrPIsHTrJhl8oICvxO8CxoeYbSbo",
+            id="1V3J3g-zoPBMHKIJVKoCje3M04gsCJf55",
             output=args.data_dir+'sports_sample.csv', quiet=False
         )
         # load political comments

@@ -1,19 +1,14 @@
-### Readings
-- statistical significance tests
-    - unpaired t test [2]
-
 ### Detecting sports language/terminology in politics
 
 - How to detect metaphors
     - edit distance + semantic similarity, "someone", "something", etc.
-        - vectorize code
         - validate semantic thresh 
         - check spellings
+        - t test [1]
 
 - Metaphors can mean different things
-    - WSD [1]
-        - gloss-bert [1]
-    - other methods [1]
+    - WSD
+        - gloss-bert [2]
 
 - Sport analogies
     - MASK
@@ -31,18 +26,25 @@
             - 20 context length -> not changing values
             - ignore UNK -> not changing values
             - POS tagging -> not changing values
-            - train longer -> [1]
+            - train longer -> 5000 epochs [1]
         - validate
-            - intrinsic
-                - king, queen
-                - taget words
+            - intrinsic (https://arxiv.org/pdf/1901.09785.pdf)
+                - king, queen (analogy) [1]
+                - target words -> cosine, euclid [1]
+                - cluster into categories (k-means) [1]
+                - outlier detection [1]
             - extrinsic
-                - use embeddings on downstream tasks
-        - embedding bias (sports terms <-> political terms?) [2]
+                - POS [1]
+                - NER [1]
+                - chunking [2]
+        - embedding bias (sports terms <-> political terms?)
         - What similarity values are acceptable?
             - “While differences in word association are measurable and are often significant, small differences in cosine similarity are not reliable, especially for small corpora. If the intention of a study is to learn about a specific corpus, we recommend that practitioners test the statistical confidence of similarities based on word embeddings by training on multiple bootstrap samples”
-        - cosine vs euclidean [3]
-        - T tests? [2]
+                - bootstrap [2]
+        - cosine vs euclidean [2]
+        - T test [1]
+    - BERT embeddings
+        - static embeddings using contextual embedding (https://aclanthology.org/2021.acl-long.408.pdf) [1]
 
 - How to calculate lm probabilites?
     - analyze
@@ -60,7 +62,7 @@
 ### Analyzing sports language in politics
 
 - Month wise metaphor frequency in political comments
-    - fix datetime  [3]
+    - fix datetime
 
 
 ### Data
