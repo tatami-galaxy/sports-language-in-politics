@@ -26,7 +26,7 @@
             - 20 context length -> not changing values
             - ignore UNK -> not changing values
             - POS tagging -> not changing values
-            - train longer -> 5000 epochs [1]
+            - train longer -> 1000 epochs
         - validate
             - intrinsic (https://arxiv.org/pdf/1901.09785.pdf)
                 - king, queen (analogy) [1]

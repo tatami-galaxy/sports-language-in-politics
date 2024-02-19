@@ -352,7 +352,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['The_Donald'],  # ['The_Donald', 'Conservative'] -> 14M words
+        default=['Conservative'],  # ['The_Donald', 'Conservative'] -> 14M words
     )
 
     
