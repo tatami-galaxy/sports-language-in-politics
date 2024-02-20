@@ -15,7 +15,7 @@
         - compare MASK replacement probabilities with target probabilities
             - average values
             - comments with negative difference
-    - word2vec [1]
+    - word2vec
         - cosine score low : How to fix?
             - seeds -> not changing values
             - stop words -> not changing values
@@ -29,20 +29,18 @@
             - train longer -> 1000 epochs
         - validate
             - intrinsic (https://arxiv.org/pdf/1901.09785.pdf)
-                - king, queen (analogy) [1]
-                - target words -> cosine, euclid [1]
-                - cluster into categories (k-means) [1]
-                - outlier detection [1]
+                - king, queen (analogy)
+                - target words -> cosine, euclid
+                - cluster into categories (k-means)
+                - outlier detection
             - extrinsic
                 - POS [1]
                 - NER [1]
-                - chunking [2]
         - embedding bias (sports terms <-> political terms?)
         - What similarity values are acceptable?
             - “While differences in word association are measurable and are often significant, small differences in cosine similarity are not reliable, especially for small corpora. If the intention of a study is to learn about a specific corpus, we recommend that practitioners test the statistical confidence of similarities based on word embeddings by training on multiple bootstrap samples”
-                - bootstrap [2]
+                - bootstrap, T test [2]
         - cosine vs euclidean [2]
-        - T test [1]
     - BERT embeddings
         - static embeddings using contextual embedding (https://aclanthology.org/2021.acl-long.408.pdf) [1]
 
