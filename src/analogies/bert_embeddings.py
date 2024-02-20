@@ -240,13 +240,10 @@ if __name__ == '__main__':
                     embedding_dict[word] = {'embedding':embeddings[i].cpu().numpy(), 'count':1}
         bar.update(1)
 
-        print(embedding_dict)
-        quit()
-
     new_embed_dict = {}
     for key, val in embedding_dict.items():
         embedding = val['embedding']/val['count']
         new_embed_dict[key] = embedding.tolist()
     # save
     with open(args.data_dir+'bert_embed.json', 'w') as f:
-        json.dump(embedding_dict, f)
+        json.dump(new_embed_dict, f)
