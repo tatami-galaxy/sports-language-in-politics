@@ -352,7 +352,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['Conservative'],  # ['The_Donald', 'Conservative'] -> 14M words
+        default=['politics'],  # ['The_Donald', 'Conservative'] -> 14M words
     )
 
     
@@ -472,8 +472,9 @@ if __name__ == '__main__':
 
     vocab_size = len(vocab.get_stoi())
     print(f"Vocabulary size: {vocab_size}")
-
+    
     print('total_words : vocab = {}'.format(word_count/vocab_size))
+
 
     # check imp tokens 
     for token in imp_tokens:
