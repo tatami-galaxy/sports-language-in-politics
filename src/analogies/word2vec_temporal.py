@@ -38,8 +38,8 @@ MILLISECONDS_IN_SECOND = 1000
 
 ## check if in vocab ##
 imp_tokens = [
-    'biden', 'trump', 'coach', 'captain', 'politician', 'fan',
-    'election', 'party', 'team', 'race', 'voter', 'quarterback',
+    'biden', 'trump', 'captain', 'politician', 'fan',
+    'election', 'party', 'team', 'race', 'voter',
     'democrats', 'republicans',
 ]
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--subs",
-        default=['politics'],  # ['The_Donald', 'Conservative'] -> 14M words
+        default=['Conservative'],  # ['The_Donald', 'Conservative'] -> 14M words
     )
     parser.add_argument(
         "--year",
@@ -502,6 +502,7 @@ if __name__ == '__main__':
     # check imp tokens 
     for token in imp_tokens:
         if token not in vocab.get_itos():
+            print(token)
             raise ValueError('imp token not in vocab')
 
     model = CBOW_Model(vocab_size=vocab_size)
