@@ -518,9 +518,9 @@ if __name__ == '__main__':
     # check imp tokens 
     for token in imp_tokens:
         if token not in vocab.get_itos():
-            print(token)
-            raise ValueError('imp token not in vocab')
+            print('Warning : {} not in vocab'.format(token))
 
+    # model
     model = CBOW_Model(vocab_size=vocab_size)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
