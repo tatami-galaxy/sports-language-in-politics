@@ -520,16 +520,14 @@ if __name__ == '__main__':
         if token not in vocab.get_itos():
             print(token)
             raise ValueError('imp token not in vocab')
-        
-    quit()
 
     model = CBOW_Model(vocab_size=vocab_size)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     lr_scheduler = get_lr_scheduler(optimizer, args.epochs, verbose=True)
 
-    if torch.backends.mps.is_available(): device = "mps"
-    elif torch.cuda.is_available(): device = "cuda"
+    if torch.cuda.is_available(): device = "cuda"
+    elif torch.backends.mps.is_available(): device = "mps"
     else: device = "cpu"
 
     trainer = Trainer(
