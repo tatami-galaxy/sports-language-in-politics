@@ -10,4 +10,5 @@ python word2vec.py --epochs 1000 --sample --sample_size 100000 --cloud --stop_wo
 python bert_embeddings.py --sample --sample_size 10000 --cloud --stop_words --subs `[list of subs]`
 
 python word2vec_temporal.py --epochs 1000 --year 2015 --cloud --subs `[list of subs]`
-python word2vec_temporal_oct.py --data_dir /Volumes/PortableSSD/CSS/data/processed --epochs 1000 --year 2015 --subs `[list of subs]` --sample --sample_size 35000 --cloud 
+
+python word2vec_temporal_oct.py --epochs 1000 --year 2015 --subs `[list of subs]` --sample --sample_size 35000 --data_dir /Volumes/PortableSSD/CSS/data/processed --cloud 
