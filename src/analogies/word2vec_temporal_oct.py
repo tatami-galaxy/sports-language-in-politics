@@ -415,7 +415,7 @@ if __name__ == '__main__':
 
         # load political and sports comments
         politics_df = pl.read_csv(args.data_dir+year_file_map[args.year]).drop_nulls()
-        sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls()
+        sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls().drop(['category', 'super_category'])
 
     # local
     else:
