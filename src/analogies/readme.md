@@ -1,7 +1,8 @@
 python mask_probs_v2.py --sample --sample_size 10000 --cloud
 
-# sample size higher than actual sample size 
-python mask_probs_v3.py --sample --sample_size 2000 --cloud  
+# sample size higher than actual sample size (some samples removed, max_len 512)
+# negative probs
+python mask_neg_probs_oct.py --data_dir /Volumes/PortableSSD/CSS/data/processed --year 2015 --target election --substitute race --subs `[list of subs]` politics --sample_size 5000 --cloud  
 
 python word2vec_demo.py 
 
