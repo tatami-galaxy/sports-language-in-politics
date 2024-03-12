@@ -382,47 +382,61 @@ if __name__ == '__main__':
 
     # load data
     year_file_map = {
-        2015: 'politics_comments_2015_10.csv',
-        2016: 'politics_comments_2016_10.csv',
-        2017: 'politics_comments_2017_10.csv',
-        2018: 'politics_comments_2018_10.csv',
-        2019: 'politics_comments_2019_10.csv',
-        2020: 'politics_comments_2020_10.csv',
-        2021: 'politics_comments_2021_10.csv',
+        2015: [
+            'politics_comments_2015_9.csv',
+            'politics_comments_2015_10.csv',
+            'politics_comments_2015_11.csv',
+            'politics_comments_2015_12.csv',
+        ],
+        2016: [
+            'politics_comments_2016_9.csv',
+            'politics_comments_2016_10.csv',
+            'politics_comments_2016_11.csv',
+            'politics_comments_2016_12.csv',
+        ],
+        2017: [
+            'politics_comments_2017_9.csv',
+            'politics_comments_2017_10.csv',
+            'politics_comments_2017_11.csv',
+            'politics_comments_2017_12.csv',
+        ],
+        2018: [
+            'politics_comments_2018_9.csv',
+            'politics_comments_2018_10.csv',
+            'politics_comments_2018_11.csv',
+            'politics_comments_2018_12.csv',
+        ],
+        2019: [
+            'politics_comments_2019_9.csv',
+            'politics_comments_2019_10.csv',
+            'politics_comments_2019_11.csv',
+            'politics_comments_2019_12.csv',
+        ],
+        2020: [
+            'politics_comments_2020_9.csv',
+            'politics_comments_2020_10.csv',
+            'politics_comments_2020_11.csv',
+            'politics_comments_2020_12.csv',
+        ],
+        2021: [
+            'politics_comments_2021_9.csv',
+            'politics_comments_2021_10.csv',
+            'politics_comments_2021_11.csv',
+            'politics_comments_2021_12.csv',
+        ],
     }
-    year_id_map = {
-        2015: "1kfQLlhe-w1oRDkFI_9xzKSsqgabhQStL",
-        2016: "1mrfLuKLlcx2xz613LuEM4_UG5Cjkve8R",
-        2017: "1uU8bGEusLTRGN8Y2qzp3lLfIbtNAGK5V",
-        2018: "1uthNuv2U-SvSE0LmyblhwqoWzWjGjF3H",
-        2019: "17QqsbCxPB5EMxJh3mggwlAC8Egk4xEGu",
-        2020: "1dlxpS-v34jnB2tKYmLzkvB3VqIENi2gL",
-        2021: "12aGe2P0hbGW37JVMirlcd2lo5lCWnFPq",
-    }
-    if args.cloud:
-        # download political comments
-        print('downloading political comments')
-        gdown.download(
-            id=year_id_map[args.year],
-            output=args.data_dir+year_file_map[args.year], quiet=False
-        )
-        # download sports comments
-        print('downloading sports comments')
-        gdown.download(
-            id="1_oh1jUYtcO_kSxeFSttP54xaMtCUNq0o",
-            output=args.data_dir+'sports_sample.csv', quiet=False
-        )
-
-        # load political and sports comments
-        politics_df = pl.read_csv(args.data_dir+year_file_map[args.year]).drop_nulls()
-        sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls().drop(['category', 'super_category'])
 
     # local
-    else:
-        # load political comments
-        print('loading political and sports comments')
-        politics_df = pl.read_csv(args.data_dir+year_file_map[args.year]).drop_nulls()
-        sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls().drop(['category', 'super_category'])
+    # load political comments
+    print('loading political and sports comments')
+    csv_list = year_file_map[args.year]
+    dfs = []
+    for csv in csv_list:
+        dfs.append(pl.read_csv(args.data_dir+csv).drop_nulls())
+    politics_df = pl.concat(dfs)
+
+    sports_df = pl.read_csv(args.data_dir+'sports_sample.csv').drop_nulls().drop(['category', 'super_category', 'author'])
+    sports_df = sports_df.select(['body', 'created_utc', 'id', 'subreddit'])
 
     # filter out subs
     data_df = politics_df.filter(pl.col('subreddit').is_in(args.subs))
