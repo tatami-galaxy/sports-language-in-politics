@@ -24,7 +24,7 @@ def ngram_edit_distance_match(meta_list, posts, ids, args):
 
     # meta : [total_matches, [post_ids]]
     exact_meta_matches = {}
-    # meta : [(gram, comment_id)..]
+    # meta : [(gram, post_id)..]
     sem_dict = {}
     meta_bar = tqdm(range(len(meta_list)))
 
