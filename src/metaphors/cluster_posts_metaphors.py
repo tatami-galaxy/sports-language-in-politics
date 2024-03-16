@@ -367,10 +367,8 @@ if __name__ == "__main__":
 
         bar.update(1)
          
-    #with open(args.data_dir+'post_cluster_matches.json', 'w') as f:
-        #json.dump(day_dict, f)
-
-    print(day_dict)
+    with open(args.data_dir+'post_cluster_matches.json', 'w') as f:
+        json.dump(day_dict, f)
 
             
 
