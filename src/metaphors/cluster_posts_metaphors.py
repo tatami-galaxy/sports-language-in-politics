@@ -367,8 +367,13 @@ if __name__ == "__main__":
 
         bar.update(1)
          
-    with open(args.data_dir+'post_cluster_matches.json', 'w') as f:
-        json.dump(day_dict, f)
+    # write to file
+    if args.day_sample is not None:
+        with open(args.data_dir+'post_cluster_matches_'+str(args.day_sample)+'.json', 'w') as f:
+            json.dump(day_dict, f)
+    else:
+        with open(args.data_dir+'post_cluster_matches.json', 'w') as f:
+            json.dump(day_dict, f)
 
             
 
