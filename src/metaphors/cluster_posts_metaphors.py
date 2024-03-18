@@ -272,6 +272,9 @@ if __name__ == "__main__":
         posts = [re.sub(r"[^a-zA-Z0-9.]+", ' ', post).lower() for post in posts]
 
         # remove duplicate posts
+
+        ## take post with most comments ? ##
+
         # id2post maps ids to posts for each day
         temp = dict(zip(ids, posts))
         dup_set = set()
@@ -351,7 +354,10 @@ if __name__ == "__main__":
                     # at least one match
                     if matches[0] > 0:
                         # meta : [total_matches, [(gram, score, post_id)]..]
-                        sem_ids = [x[2] for x in matches[1]]
+                        sem_ids  = []
+                        for tup in matches[1]:
+                            if tup[1] >= args.sem_thresh:  # score
+                                sem_ids.append(tup[2])
                         sem_meta_ids.extend(sem_ids)
                 sem_meta_ids = list(set(sem_meta_ids))
 
