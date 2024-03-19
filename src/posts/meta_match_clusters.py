@@ -260,8 +260,11 @@ if __name__ == "__main__":
         # get all clusters for day
         clusters = cluster_data[str(day)]
 
+        cluster_bar = tqdm(range(len(clusters)))
         # for each cluster do metaphor matching 
         for c_id, p_ids in clusters.items():
+
+            cluster_bar.update(1)
 
             # get non trivial clusters
             if len(p_ids) <= 1:
