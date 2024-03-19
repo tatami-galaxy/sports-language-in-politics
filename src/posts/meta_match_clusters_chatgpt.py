@@ -6,112 +6,17 @@ import json
 import re
 import random
 from tqdm.auto import tqdm
-import editdistance
-from nltk.util import ngrams
 
 import torch
-from sentence_transformers import SentenceTransformer, util
-from sklearn.metrics.pairwise import cosine_distances
-from sklearn.cluster import AgglomerativeClustering
+from openai import OpenAI
 
 from constants import *
-from preprocess import preprocess_posts, remove_duplicates
+from preprocess import preprocess_posts
 
 # get root directory
 root = abspath(__file__)
 while root.split('/')[-1] != 'sports-language-in-politics':
     root = dirname(root)
-
-
-def ngram_edit_distance_match(meta_list, posts, ids, args):
-
-    # meta : [total_matches, [post_ids]]
-    exact_meta_matches = {}
-    # meta : [(gram, comment_id)..]
-    sem_dict = {}
-
-    for meta in meta_list:
-
-        meta_len = len(meta.split())
-        if meta_len <= 2:
-            edit_thresh = args.edit_thresh_1_2_gram
-        elif meta_len == 3:
-            edit_thresh = args.edit_thresh_3_gram
-        else:
-            edit_thresh = args.edit_thresh_n_gram
-
-        if 'something' in meta or 'someone' in meta or 'someones' in meta:
-            if meta.split()[0] in ['something', 'someone', 'someones']:
-                meta = ' '.join(meta.split()[1:])
-            elif meta.split()[-1] in ['something', 'someone', 'someones']:
-                meta = ' '.join(meta.split()[:-1])
-            else:
-                edit_thresh += 10  # len of something + max edit thresh
-
-        exact_meta_matches[meta] = [0, []]  # [total_matches, [comment_ids]]
-        sem_dict[meta] = []
-
-        for p in range(len(posts)):
-            # splitting for ngram
-            text = posts[p].split()
-            id = ids[p]
-            grams = [' '.join(l) for l in list(ngrams(text, n=meta_len))]
-
-            for gram in grams:
-                dist = editdistance.eval(gram, meta)
-                if dist <= edit_thresh:
-                    if dist == 0:
-                        # add to exact match count
-                        exact_meta_matches[meta][0] += 1
-                        # add comment id
-                        exact_meta_matches[meta][1].append(id)
-                    else:
-                       # meta : [(gram, comment_id)..]
-                       sem_dict[meta].append((gram, id))
-
-    return exact_meta_matches, sem_dict
-
-
-def semantic_filter(model, sem_dict, args):
-
-    # sem_dict -> meta : [(gram, post_id)..]
-    dup_dict = {}
-    yes_dict = {}
-    meta_count = 0
-    # meta : [total_matches, [(gram, score, post_id)]..]
-    semantic_meta_matches = {}
-
-    for meta, match_list in sem_dict.items():
-        meta_count += 1
-        semantic_meta_matches[meta] = [0, []]
-
-        # no semantic matches
-        if len(match_list) == 0:
-            continue
-
-        dup_dict[meta] = []
-        yes_dict[meta] = []
-        meta_embedding = model.encode(meta)
-
-        for match in match_list:  # match -> (gram, post_id)
-            if match[0] not in dup_dict[meta]:
-                match_embedding = model.encode(match[0])
-                score = util.cos_sim(meta_embedding, match_embedding).item()
-                # meta : [total_matches, [(gram, score, post_id)]..]
-                semantic_meta_matches[meta][1].append(
-                    (match[0], score, match[1]))
-                if score >= args.sem_thresh:
-                    semantic_meta_matches[meta][0] += 1
-                    yes_dict[meta].append(match[0])
-                # if meta not in embed_dict:
-                    # embed_dict[meta] = [match]
-                # else:
-                    # embed_dict[meta].append(match)
-                dup_dict[meta].append(match[0])
-            elif match[0] in yes_dict[meta]:
-                semantic_meta_matches[meta][0] += 1
-
-    return semantic_meta_matches
 
 
 if __name__ == "__main__":
@@ -128,34 +33,9 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
-        "--model_name",
-        default='sentence-transformers/all-mpnet-base-v2',
-        type=str,
-    )
-    parser.add_argument(
         "--max_meta",
         default=None,
         type=int,
-    )
-    parser.add_argument(
-        "--edit_thresh_1_2_gram",
-        default=2,
-        type=int,
-    )
-    parser.add_argument(
-        "--edit_thresh_3_gram",
-        default=3,
-        type=int,
-    )
-    parser.add_argument(
-        "--edit_thresh_n_gram",
-        default=4,
-        type=int,
-    )
-    parser.add_argument(
-        "--sem_thresh",
-        default=0.8,
-        type=float,
     )
     parser.add_argument(
         "--day_sample",
@@ -164,6 +44,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--cluster_file",
+        default=None,
+        type=str,
+    )
+    parser.add_argument(
+        "--api_key",
         default=None,
         type=str,
     )
@@ -243,8 +128,8 @@ if __name__ == "__main__":
     else:
         device = "cpu"
 
-    # load model
-    model = SentenceTransformer(args.model_name, device=device)
+    # gpt3.5 client
+    client = OpenAI(api_key=args.api_key)
 
     # day -> {cluster1 : {'meta' : [id1, id2, ..], 'non_meta' : [id3, id4, ..]}, cluster2 : {..}}
     day_dict = {}
@@ -262,8 +147,11 @@ if __name__ == "__main__":
         # get all clusters for day
         clusters = cluster_data[str(day)]
 
+        cluster_bar = tqdm(range(len(clusters)))
         # for each cluster do metaphor matching 
         for c_id, p_ids in clusters.items():
+
+            cluster_bar.update(1)
 
             # get non trivial clusters
             if len(p_ids) <= 1:
@@ -274,51 +162,45 @@ if __name__ == "__main__":
             posts = day_df.filter(pl.col('id').is_in(p_ids))['title'].to_list()
             posts = preprocess_posts(posts)
 
-
             # metaphor match each non trivial cluster
-            # day -> {cluster1 : {'meta' : [id1, id2, ..], 'non_meta' : [id3, id4, ..]}, cluster2 : {..}}
+            # day -> {cluster1 : {'meta' : [(id1,exp1), (id2,exp2), ..], 'non_meta' : [id3, id4, ..]}, cluster2 : {..}}
 
             meta_ids = []
-            sem_meta_ids = []
             non_meta_ids = []
 
-            # exact matches
-            exact_meta_matches, sem_dict = ngram_edit_distance_match(meta_list, posts, p_ids, args)
-            exact_count = sum([l[0] for l in list(exact_meta_matches.values())])
+            total_responses = []
+            for post in posts:
 
-            # if any exact matches
-            if exact_count > 0:
-                # get meta ids for the cluster
-                for meta, matches in exact_meta_matches.items():
-                    # at least one match
-                    if matches[0] > 0:
-                        # meta : [total_matches, [post_ids]]
-                        meta_ids.extend(matches[1])
-                meta_ids = list(set(meta_ids))
+                response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                response_format={ "type": "json_object" },
+                seed=20,
+                temperature=0.53,
+                messages=[
+                    {
+                    "role": "system",
+                    "content": "You will be provided with a Reddit post title, and your task is to identify if the post contains a sports metaphor or not. Note that sports related words may be used in a nonmetaphorical way, do not label such cases as sports metaphors. If the text does contain a sports metaphor, identify the sports metaphor word or phrase and provide a max 10 word explanation. Provide the answer in a JSON format with the following keys, contains_sports_metaphor (true/false), sports_metaphor, explanation."
+                    },
+                    {
+                    "role": "user",
+                    "content": post
+                    }
+                ],
+                )
+                
+                obj = json.loads(response.json())
+                resp_json = json.loads(obj["choices"][0]["message"]["content"])
+                resp_json["post"] = post
 
-            # semantic matches
-            semantic_meta_matches = semantic_filter(model, sem_dict, args)
-            semantic_count = sum([l[0] for l in list(semantic_meta_matches.values())])
+                total_responses.append(resp_json)
 
-            # if any semantic matches
-            if semantic_count > 0:
-                # get meta ids for the cluster
-                for meta, matches in semantic_meta_matches.items():
-                    # at least one match
-                    if matches[0] > 0:
-                        # meta : [total_matches, [(gram, score, post_id)]..]
-                        sem_ids  = []
-                        for tup in matches[1]:
-                            if tup[1] >= args.sem_thresh:  # score
-                                sem_ids.append(tup[2])
-                        sem_meta_ids.extend(sem_ids)
-                sem_meta_ids = list(set(sem_meta_ids))
-
-            # combine meta_ids
-            meta_ids = meta_ids + sem_meta_ids
-            # get non meta ids for the cluster
-            for id in p_ids:
-                if id not in meta_ids:
+            # meta ids vs non meta ids
+            for r in range(len(total_responses)):
+                response = total_responses[r]
+                id = p_ids[r]
+                if response['contains_sports_metaphor']:
+                    meta_ids.append((id, response['explanation']))
+                else:
                     non_meta_ids.append(id)
 
             # add cluster data to day_dict
@@ -328,10 +210,10 @@ if __name__ == "__main__":
          
     # write to file
     if args.day_sample is not None:
-        with open(args.data_dir+'post_cluster_matches_'+str(args.day_sample)+'.json', 'w') as f:
+        with open(args.data_dir+'post_cluster_matches_chatgpt'+str(args.day_sample)+'.json', 'w') as f:
             json.dump(day_dict, f)
     else:
-        with open(args.data_dir+'post_cluster_matches.json', 'w') as f:
+        with open(args.data_dir+'post_cluster_matches_chatgpt.json', 'w') as f:
             json.dump(day_dict, f)
 
             

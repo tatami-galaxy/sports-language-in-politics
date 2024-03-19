@@ -230,6 +230,7 @@ if __name__ == "__main__":
         all_days = all_days[:args.day_sample]
 
     # load clusters
+    print('loading clusters')
     with open(args.cluster_file) as f:
         cluster_data = json.load(f)
 
