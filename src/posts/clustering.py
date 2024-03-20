@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
         # remove duplicate posts
         # take post with most comments
-        ids, posts = remove_duplicates(day_df, ids, posts)
+        #ids, posts = remove_duplicates(day_df, ids, posts)
 
         # encode posts
         embeddings = model.encode(posts)

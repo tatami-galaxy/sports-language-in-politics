@@ -10,7 +10,7 @@ NO_META_LIST = ['out', 'up', 'tip', 'check']
 
 # hyperparameters
 MIN_CHARS = 10
-CLUSTERING_THRESHOLD = 0.4
+CLUSTERING_THRESHOLD = 0.45
 
 # seed
-SEED = 42
+SEED = 42  # 42
