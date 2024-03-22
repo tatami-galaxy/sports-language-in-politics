@@ -172,20 +172,20 @@ if __name__ == "__main__":
             for post in posts:
 
                 response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                response_format={ "type": "json_object" },
-                seed=20,
-                temperature=0.53,
-                messages=[
-                    {
-                    "role": "system",
-                    "content": "You will be provided with a Reddit post title, and your task is to identify if the post contains a sports metaphor or not. Note that sports related words may be used in a nonmetaphorical way, do not label such cases as sports metaphors. If the text does contain a sports metaphor, identify the sports metaphor word or phrase and provide a max 10 word explanation. Provide the answer in a JSON format with the following keys, contains_sports_metaphor (true/false), sports_metaphor, explanation."
-                    },
-                    {
-                    "role": "user",
-                    "content": post
-                    }
-                ],
+                    model="gpt-3.5-turbo",
+                    response_format={ "type": "json_object" },
+                    seed=20,
+                    temperature=0.53,
+                    messages=[
+                        {
+                        "role": "system",
+                        "content": "You will be provided with a Reddit post title, and your task is to identify if the post contains a sports metaphor or not. Note that sports related words may be used in a nonmetaphorical way, do not label such cases as sports metaphors. If the text does contain a sports metaphor, identify the sports metaphor word or phrase and provide a max 10 word explanation. Provide the answer in a JSON format with the following keys, contains_sports_metaphor (true/false), sports_metaphor, explanation."
+                        },
+                        {
+                        "role": "user",
+                        "content": post
+                        }
+                    ],
                 )
                 
                 obj = json.loads(response.json())
