@@ -262,14 +262,24 @@ if __name__ == "__main__":
     print(len(meta_ids))
     print(len(non_meta_ids))
 
+    # compile results into df
+    contains_sports_meta = []
+    for i in range(ids):
+        if ids[i] in meta_ids:
+            contains_sports_meta.append(True)
+        else:
+            contains_sports_meta.append(False)
+
+    data_dict = {
+        'id': ids,
+        'post': posts,
+        'ground_truth': gt,
+        'result': contains_sports_meta,
+    }
+    data_df = pl.from_dict(data_dict)
 
     # write to file
-    #if args.day_sample is not None:
-        #with open(args.data_dir+'post_cluster_matches_'+str(args.day_sample)+'.json', 'w') as f:
-            #json.dump(day_dict, f)
-    #else:
-        #with open(args.data_dir+'post_cluster_matches.json', 'w') as f:
-            #json.dump(day_dict, f)
+    data_df.write_csv(args.data_dir+'sem_matching_responses_eval.csv', separator=",")
 
             
 
