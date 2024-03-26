@@ -259,10 +259,12 @@ if __name__ == "__main__":
         #sem_meta_ids = list(set(sem_meta_ids))
 
     # combine meta_ids
-    meta_ids = set(meta_ids + sem_meta_ids)
+    meta_ids = list(set(meta_ids + sem_meta_ids))
     # get non meta ids
+    #  meta_ids elements are (id, meta)
+    m_ids = [m[0] for m in meta_ids]
     for id in ids:
-        if id not in meta_ids:
+        if id not in m_ids:
             non_meta_ids.append(id)
 
     print(len(meta_ids))
