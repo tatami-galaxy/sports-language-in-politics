@@ -230,7 +230,11 @@ if __name__ == "__main__":
             # at least one match
             if matches[0] > 0:
                 # meta : [total_matches, [post_ids]]
-                meta_ids.extend(matches[1])
+
+                meta_l = [meta]*len(matches[1])
+                res = list(zip(matches[1], meta_l))
+                meta_ids.extend(res)
+                #meta_ids.extend(matches[1])
         #meta_ids = list(set(meta_ids))
 
     # semantic matches
@@ -248,7 +252,9 @@ if __name__ == "__main__":
                 sem_ids  = []
                 for tup in matches[1]:
                     if tup[1] >= args.sem_thresh:  # score
-                        sem_ids.append(tup[2])
+                        
+                        sem_ids.append((tup[2], meta))
+
                 sem_meta_ids.extend(sem_ids)
         #sem_meta_ids = list(set(sem_meta_ids))
 
@@ -261,6 +267,7 @@ if __name__ == "__main__":
 
     print(len(meta_ids))
     print(len(non_meta_ids))
+    quit()
 
     # compile results into df
     contains_sports_meta = []
