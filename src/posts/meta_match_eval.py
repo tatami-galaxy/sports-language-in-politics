@@ -274,15 +274,19 @@ if __name__ == "__main__":
         if id not in merged_metas:
             non_meta_ids.append(id)
 
-    print(len(merged_metas))
-    print(len(non_meta_ids))
-    quit()
-
     # compile results into df
     contains_sports_meta = []
+    sports_metas = []
     for i in range(len(ids)):
-        if ids[i] in meta_ids:
+        # id has metaphor
+        if ids[i] in merged_metas:
             contains_sports_meta.append(True)
+            # if more than one meta for same id
+            if len(merged_metas[ids[i]]) > 1:
+                sports_metas.append(', '.join(merged_metas[ids[i]]))
+            else:
+                sports_metas.append(merged_metas[ids[i]][0])
+        # id does not have metaphor
         else:
             contains_sports_meta.append(False)
 
@@ -291,6 +295,7 @@ if __name__ == "__main__":
         'post': posts,
         'ground_truth': gt,
         'result': contains_sports_meta,
+        'sports_meta': sports_metas,
     }
     data_df = pl.from_dict(data_dict)
 
