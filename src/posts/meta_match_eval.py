@@ -89,6 +89,8 @@ def semantic_filter(model, sem_dict, args):
         meta_count += 1
         semantic_meta_matches[meta] = [0, []]
 
+        bar.update(1)
+
         # no semantic matches
         if len(match_list) == 0:
             continue
@@ -114,8 +116,6 @@ def semantic_filter(model, sem_dict, args):
                 dup_dict[meta].append(match[0])
             elif match[0] in yes_dict[meta]:
                 semantic_meta_matches[meta][0] += 1
-
-        bar.update(1)
 
     return semantic_meta_matches
 
@@ -264,7 +264,7 @@ if __name__ == "__main__":
 
     # compile results into df
     contains_sports_meta = []
-    for i in range(ids):
+    for i in range(len(ids)):
         if ids[i] in meta_ids:
             contains_sports_meta.append(True)
         else:
