@@ -260,6 +260,15 @@ if __name__ == "__main__":
 
     # combine meta_ids
     meta_ids = list(set(meta_ids + sem_meta_ids))
+    # check if same id has multiple metaphors
+    dup = set()
+    for id in meta_ids:
+        if id[0] not in dup:
+            dup.add(id[0])
+        else:
+            print('found')
+            quit()
+
     # get non meta ids
     #  meta_ids elements are (id, meta)
     m_ids = [m[0] for m in meta_ids]
