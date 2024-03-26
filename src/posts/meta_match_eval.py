@@ -231,7 +231,7 @@ if __name__ == "__main__":
             if matches[0] > 0:
                 # meta : [total_matches, [post_ids]]
                 meta_ids.extend(matches[1])
-        meta_ids = list(set(meta_ids))
+        #meta_ids = list(set(meta_ids))
 
     # semantic matches
     print('semantic matches')
@@ -250,10 +250,10 @@ if __name__ == "__main__":
                     if tup[1] >= args.sem_thresh:  # score
                         sem_ids.append(tup[2])
                 sem_meta_ids.extend(sem_ids)
-        sem_meta_ids = list(set(sem_meta_ids))
+        #sem_meta_ids = list(set(sem_meta_ids))
 
     # combine meta_ids
-    meta_ids = meta_ids + sem_meta_ids
+    meta_ids = set(meta_ids + sem_meta_ids)
     # get non meta ids
     for id in ids:
         if id not in meta_ids:
