@@ -289,6 +289,7 @@ if __name__ == "__main__":
         # id does not have metaphor
         else:
             contains_sports_meta.append(False)
+            sports_metas.append('')
 
     data_dict = {
         'id': ids,
